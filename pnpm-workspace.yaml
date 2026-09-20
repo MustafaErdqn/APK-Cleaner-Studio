@@ -1,0 +1,8 @@
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+  workerd: true
+overrides:
+  baseline-browser-mapping: 2.11.9
+  nanoid: 3.3.18

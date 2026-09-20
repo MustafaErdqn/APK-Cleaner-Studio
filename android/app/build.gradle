@@ -1,0 +1,135 @@
+plugins {
+    id "com.android.application"
+    id "com.chaquo.python"
+}
+
+def studioSigning = new Properties()
+def configuredSigningFile = System.getenv("APK_CLEANER_SIGNING_PROPERTIES")
+def signingBase = System.getenv("LOCALAPPDATA") ?: System.getProperty("user.home")
+def studioSigningFile = configuredSigningFile
+        ? file(configuredSigningFile)
+        : new File(signingBase, "APKCleanerStudio/release-signing/signing.properties")
+if (studioSigningFile.exists()) {
+    studioSigningFile.withInputStream { studioSigning.load(it) }
+}
+
+android {
+    namespace "com.apkcleaner.studio"
+    compileSdk 37
+
+    defaultConfig {
+        applicationId "com.apkrepo.apkcleanerstudio"
+        minSdk 26
+        targetSdk 36
+        // Kararlı sürüm, v0.6.1 kurulumunun üzerine güncellenebilir.
+        versionCode 62
+        versionName "0.6.2"
+
+        // Yalnızca varsayılan/İngilizce ve Türkçe metin kaynaklarını paketle.
+        // Yoğunluklar resourceConfigurations ile filtrelenemez; projede yalnızca
+        // xhdpi ve xxhdpi başlatıcı görselleri bulunduğu için çıktı zaten bu iki
+        // yoğunlukla sınırlıdır.
+        resourceConfigurations += ["en", "tr"]
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a"
+        }
+    }
+
+    signingConfigs {
+        studio {
+            if (!studioSigning.isEmpty()) {
+                def configuredStore = new File(studioSigning["storeFile"])
+                storeFile configuredStore.isAbsolute()
+                        ? configuredStore
+                        : new File(studioSigningFile.parentFile, studioSigning["storeFile"])
+                storePassword studioSigning["storePassword"]
+                keyAlias studioSigning["keyAlias"]
+                keyPassword studioSigning["keyPassword"]
+            }
+            enableV1Signing false
+            enableV2Signing true
+            enableV3Signing true
+            enableV4Signing false
+        }
+    }
+
+    buildTypes {
+        debug {
+            if (!studioSigning.isEmpty()) signingConfig signingConfigs.studio
+        }
+        release {
+            if (!studioSigning.isEmpty()) signingConfig signingConfigs.studio
+            debuggable false
+            jniDebuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packaging {
+        resources {
+            excludes += [
+                "META-INF/*.SF", "META-INF/*.RSA", "META-INF/*.DSA",
+                "META-INF/DEPENDENCIES", "META-INF/LICENSE*", "META-INF/NOTICE*",
+                "META-INF/versions/**", "module-info.class"
+            ]
+        }
+    }
+}
+
+chaquopy {
+    defaultConfig {
+        version = "3.11"
+        pyc {
+            // Derleme makinesine Python 3.11 kurdurmadan iki ARM ABI'sini üret.
+            src = false
+            pip = false
+            stdlib = false
+        }
+    }
+}
+
+// JDK 21 LTS'yi Gradle sürecinde kullan. Haricî javac, Windows'ta sınıf yolu
+// JAR'ını kapatırken AccessDeniedException üretip bazı yardımcı kaynakları
+// eksik derleyebiliyor. Artırımlı derlemeyi kapatmak kaynak kümesini tutarlı tutar.
+tasks.withType(JavaCompile).configureEach {
+    options.incremental = false
+    options.fork = false
+}
+
+// Chaquopy 17, temiz Windows derlemelerinde R8'e bu oluşturulmuş dosyayı
+// bildiriyor ancak Python proxy görevi dosyayı her zaman üretmiyor. Projedeki
+// asıl ProGuard kuralları Python köprüsünü zaten koruyor; R8'in eksik girdiyle
+// düşmemesi için bildirilen boş ek dosyayı deterministik olarak hazırla.
+def ensurePythonProguardRules = tasks.register("ensurePythonProguardRules") {
+    def rulesFile = layout.buildDirectory.file("python/proguard-rules.pro")
+    outputs.file(rulesFile)
+    doLast {
+        def target = rulesFile.get().asFile
+        target.parentFile.mkdirs()
+        if (!target.exists()) {
+            target.setText("# Generated compatibility input; rules live in app/proguard-rules.pro.\n", "UTF-8")
+        }
+    }
+}
+tasks.configureEach { task ->
+    if ((task.name.startsWith("minify") && task.name.endsWith("WithR8")) ||
+            task.name.toLowerCase().contains("lint")) {
+        task.dependsOn(ensurePythonProguardRules)
+    }
+}
+
+
+dependencies {
+    implementation files("libs/direct-dex-patcher.jar")
+    implementation files("libs/dexlib2-runtime-android.jar")
+    implementation files("libs/binary-xml-patcher.jar")
+    implementation files("libs/APKEditor-android.jar")
+    implementation "com.android.tools.build:apksig:9.2.0"
+}

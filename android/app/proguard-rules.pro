@@ -1,0 +1,12 @@
+-keep class com.chaquo.python.** { *; }
+-keep class com.apkcleaner.studio.** { *; }
+-keep class local.apkcleaner.dex.** { *; }
+-keep class local.apkcleaner.xml.** { *; }
+-keep class com.reandroid.** { *; }
+-keep class com.android.tools.smali.** { *; }
+-keep class com.android.apksig.** { *; }
+-dontwarn javax.annotation.**
+-dontwarn org.conscrypt.**
+-dontwarn sun.security.**
+-dontwarn com.google.j2objc.annotations.**
+-dontwarn java.lang.reflect.AnnotatedType

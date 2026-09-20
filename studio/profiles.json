@@ -1,0 +1,146 @@
+{
+  "google_ads": {
+    "label": "Google Ads",
+    "descriptors": ["com/google/android/gms/ads", "com/google/ads"],
+    "manifest": ["com.google.android.gms.ads."],
+    "metadata": ["com.google.android.gms.ads.", "com.google.android.gms.ads.APPLICATION_ID"],
+    "assets": ["google_mobile_ads", "admob"],
+    "libraries": []
+  },
+  "applovin": {
+    "label": "AppLovin MAX",
+    "descriptors": ["com/applovin"],
+    "manifest": ["com.applovin."],
+    "metadata": ["com.applovin."],
+    "assets": ["applovin", "omsdk", "omid"],
+    "libraries": ["applovin", "apphub"]
+  },
+  "vungle": {
+    "label": "Vungle / Liftoff",
+    "descriptors": ["com/vungle"],
+    "manifest": ["com.vungle."],
+    "metadata": ["com.vungle."],
+    "assets": ["vungle"],
+    "libraries": ["vungle"]
+  },
+  "pangle": {
+    "label": "Pangle / ByteDance",
+    "descriptors": ["com/bytedance/sdk/openadsdk"],
+    "manifest": ["com.bytedance.sdk.openadsdk."],
+    "metadata": ["com.bytedance.sdk.openadsdk."],
+    "assets": ["pangle", "openadsdk"],
+    "libraries": ["pangle", "nms", "tobEmbedPag"]
+  },
+  "inmobi": {
+    "label": "InMobi",
+    "descriptors": ["com/inmobi"],
+    "manifest": ["com.inmobi."],
+    "metadata": ["com.inmobi."],
+    "assets": ["inmobi"],
+    "libraries": ["inmobi"]
+  },
+  "unity_ads": {
+    "label": "Unity Ads",
+    "descriptors": ["com/unity3d/ads"],
+    "manifest": ["com.unity3d.ads."],
+    "metadata": ["com.unity3d.ads."],
+    "assets": ["unityads"],
+    "libraries": ["unityads"]
+  },
+  "ironsource": {
+    "label": "ironSource / LevelPlay",
+    "descriptors": ["com/ironsource", "com/unity3d/mediation"],
+    "manifest": ["com.ironsource.", "com.unity3d.mediation."],
+    "metadata": ["com.ironsource."],
+    "assets": ["ironsource", "levelplay"],
+    "libraries": ["ironsource"]
+  },
+  "mintegral": {
+    "label": "Mintegral",
+    "descriptors": ["com/mbridge", "com/mintegral"],
+    "manifest": ["com.mbridge.", "com.mintegral."],
+    "metadata": ["com.mbridge.", "com.mintegral."],
+    "assets": ["mbridge", "mintegral"],
+    "libraries": ["mbridge", "mintegral"]
+  },
+  "fyber": {
+    "label": "Fyber / DT Exchange",
+    "descriptors": ["com/fyber", "com/digitalturbine"],
+    "manifest": ["com.fyber.", "com.digitalturbine."],
+    "metadata": ["com.fyber."],
+    "assets": ["fyber", "digitalturbine"],
+    "libraries": ["fyber"]
+  },
+  "ogury": {
+    "label": "Ogury",
+    "descriptors": ["io/presage", "com/ogury"],
+    "manifest": ["io.presage.", "com.ogury."],
+    "metadata": ["io.presage.", "com.ogury."],
+    "assets": ["ogury", "presage"],
+    "libraries": ["ogury", "presage"]
+  },
+  "facebook_ads": {
+    "label": "Meta Audience Network",
+    "descriptors": ["com/facebook/ads"],
+    "manifest": ["com.facebook.ads."],
+    "metadata": ["com.facebook.ads."],
+    "assets": ["audience_network"],
+    "libraries": ["fbads"]
+  },
+  "startapp": {
+    "label": "Start.io",
+    "descriptors": ["com/startapp"],
+    "manifest": ["com.startapp."],
+    "metadata": ["com.startapp."],
+    "assets": ["startapp", "startio"],
+    "libraries": ["startapp"]
+  },
+  "chartboost": {
+    "label": "Chartboost",
+    "descriptors": ["com/chartboost/sdk"],
+    "manifest": ["com.chartboost.sdk."],
+    "metadata": ["com.chartboost.sdk."],
+    "assets": ["chartboost"],
+    "libraries": ["chartboost"]
+  },
+  "adcolony": {
+    "label": "AdColony",
+    "descriptors": ["com/adcolony/sdk"],
+    "manifest": ["com.adcolony.sdk."],
+    "metadata": ["com.adcolony.sdk."],
+    "assets": ["adcolony"],
+    "libraries": ["adcolony"]
+  },
+  "tapjoy": {
+    "label": "Tapjoy",
+    "descriptors": ["com/tapjoy"],
+    "manifest": ["com.tapjoy."],
+    "metadata": ["com.tapjoy."],
+    "assets": ["tapjoy"],
+    "libraries": ["tapjoy"]
+  },
+  "smaato": {
+    "label": "Smaato",
+    "descriptors": ["com/smaato/sdk"],
+    "manifest": ["com.smaato.sdk."],
+    "metadata": ["com.smaato.sdk."],
+    "assets": ["smaato"],
+    "libraries": ["smaato"]
+  },
+  "yandex_ads": {
+    "label": "Yandex Ads",
+    "descriptors": ["com/yandex/mobile/ads"],
+    "manifest": ["com.yandex.mobile.ads."],
+    "metadata": ["com.yandex.mobile.ads."],
+    "assets": ["yandex_mobile_ads"],
+    "libraries": ["yandexads"]
+  },
+  "amazon_ads": {
+    "label": "Amazon Publisher Services",
+    "descriptors": ["com/amazon/device/ads", "com/amazon/aps"],
+    "manifest": ["com.amazon.device.ads.", "com.amazon.aps."],
+    "metadata": ["com.amazon.device.ads.", "com.amazon.aps."],
+    "assets": ["amazon_ads", "aps_ads"],
+    "libraries": ["amazonads", "aps"]
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "manifest_url": "",
+  "check_interval_hours": 6,
+  "description": "HTTPS güncelleme bildirimi adresi. GitHub Releases veya statik JSON adresi bağlanabilir."
+}

@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+
+const theme = await readFile(new URL('../studio/web/theme.css', import.meta.url), 'utf8');
+const script = await readFile(new URL('../studio/web/app.js', import.meta.url), 'utf8');
+
+test('desktop stages keep the sidebar and the compact feature strip, without the full guide during analysis', () => {
+  assert.match(theme, /@media \(min-width:\s*901px\)[\s\S]*?\.workspace\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\) 340px/);
+  assert.match(theme, /\.workspace > aside\s*\{\s*position:\s*sticky;\s*top:\s*94px/);
+  assert.doesNotMatch(theme, /\.workspace\[data-stage="working"\][\s\S]{0,200}?grid-template-columns/);
+  assert.match(script, /const showStartGuide = id === "#selectView" \|\| id === "#workingView" \|\| id === "#resultView"/);
+  assert.match(script, /\$\("#startGuide"\)\.classList\.toggle\("hidden", !showStartGuide\)/);
+  assert.match(script, /\.workspace-primary > \.features[\s\S]*?#analysisView/);
+});
+
+test('desktop header controls share a height while the motor action stays compact and single-line', () => {
+  assert.match(theme, /@media \(min-width: 721px\)\s*\{\s*\.topbar :is\(\.connection, \.theme-switcher, \.tool-button\)\s*\{\s*height: 40px;/);
+  assert.match(theme, /\.topbar \.tool-button\s*\{[\s\S]*?width: 148px;[\s\S]*?min-width: 148px;/);
+  assert.match(theme, /\.topbar \.connection,\s*\.topbar \.tool-button\s*\{\s*white-space: nowrap;/);
+  assert.match(theme, /@media \(min-width: 721px\) and \(max-width: 840px\)\s*\{\s*\.topbar\s*\{\s*grid-template-columns: minmax\(0, 1fr\) auto auto;/);
+  assert.match(theme, /\.topbar \.theme-switcher\s*\{\s*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+});

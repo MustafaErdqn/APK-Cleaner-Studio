@@ -1,0 +1,15 @@
+/.gradle/
+/.idea/
+/local.properties
+/app/build/
+/app/src/main/python/engine.py
+/app/src/main/python/server.py
+/app/src/main/python/setup_tools.py
+/app/src/main/python/updater.py
+/app/src/main/python/device_catalog.py
+/app/src/main/python/profiles.json
+/app/src/main/python/device-catalog.json
+/app/src/main/python/update-channel.json
+/app/src/main/python/web/
+/app/libs/*.jar
+/release/

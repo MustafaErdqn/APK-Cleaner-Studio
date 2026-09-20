@@ -1,0 +1,102 @@
+"""Local-only UI fixture; never included in a release or connected to real jobs."""
+import json
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
+
+ROOT = Path(__file__).resolve().parents[1]
+WEB = ROOT / "studio" / "web"
+PROFILES = json.loads((ROOT / "studio" / "profiles.json").read_text(encoding="utf-8"))
+TOOLS = dict.fromkeys(("java", "dex_tools", "manifest_tool", "split_tool", "signer", "zipalign", "resource_tool", "fully_ready"), True)
+
+class Handler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=str(WEB), **kwargs)
+
+    def reply(self, body, content_type="application/json"):
+        data = body.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", content_type + "; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        request_url = urlsplit(self.path)
+        path = request_url.path
+        if path == "/":
+            capture = parse_qs(request_url.query).get("capture", [""])[0]
+            html = (WEB / "index.html").read_text(encoding="utf-8")
+            marks = [dict(id=key, label=value["label"], references=4313 - i * 199) for i, (key, value) in enumerate(PROFILES.items())]
+            bridge = '''<script>const qaApps=Array.from({length:100},(_,i)=>({package:'com.example.app'+i,label:'Test uygulaması '+(i+1),version:'1.2.0',splits:i%3,icon:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="48" height="48" rx="12" fill="#239b84"/><circle cx="24" cy="24" r="12" fill="#d9ff43"/></svg>')})); globalThis.AndroidThemeBridge={setTheme(){},requestInstalledPackages(){onInstalledPackagesLoaded(JSON.stringify(qaApps));}};</script>'''
+            controls_display = "none" if capture else "flex"
+            controls = f'''<nav id="qa" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#eee;padding:6px;display:{controls_display};gap:6px;flex-wrap:wrap;color:#111;font:12px system-ui">
+            <button onclick="document.querySelector('#networkTitle').scrollIntoView()">QA Simgeler</button>
+            <button onclick="openInstalledApps()">QA Liste</button>
+            <button onclick="qaIconIdentity()">QA İkon testi</button><output id="qaResult" role="status"></output>
+            <button onclick="qaAnalysis(true)">QA Analiz</button>
+            <button onclick="qaAnalysis(false)">QA Reklamsız</button>
+            <button onclick="document.querySelector('.special-thanks').scrollIntoView()">QA Teşekkürler</button>
+            <button onclick="openReportViewer('fixture','Örnek işlem raporu')">QA Rapor</button>
+            <button onclick="confirmAction('Örnek onay','Bu yalnızca görsel bir testtir.')">QA Onay</button>
+            <button onclick="openMessageReview()">QA Mesaj</button>
+            <button onclick="showView('#workingView');resetProgress();updateProgress(50,'Yerel işlem sürüyor');document.querySelector('#workingView').scrollIntoView()">QA İlerleme</button>
+            <button onclick="showView('#resultView');document.querySelector('#resultView').scrollIntoView()">QA Sonuç</button>
+            <button onclick="setNativeVisibility(false)">QA Arka plan</button>
+            <button onclick="setNativeVisibility(true)">QA Ön plan</button>
+            <button onclick="applyTheme('light')">QA Açık</button><button onclick="applyTheme('dark')">QA Koyu</button>
+            </nav>'''
+            if capture in {"analysis", "result"}:
+                html = html.replace(
+                    "</head>",
+                    "<style>.hero,#mobileHttpsBanner,.starter-content,footer{display:none!important}.workspace{margin-top:24px!important}</style></head>",
+                    1,
+                )
+            elif capture == "working":
+                html = html.replace(
+                    "</head>",
+                    "<style>.hero,#mobileHttpsBanner,footer{display:none!important}.workspace{margin-top:24px!important}</style></head>",
+                    1,
+                )
+            html = html.replace('<script src="ui-runtime.js', bridge + '<script src="ui-runtime.js', 1)
+            setup = '''function qaAnalysis(ads,shouldScroll=true) { const analysis={filename:'Görsel test.apks',size:10240,dex_count:3,network_count:ads?18:0,detections:ads?qaMarks:[],split_merged:true,split_options:{abis:['arm64-v8a','armeabi-v7a'],languages:[{code:'tr',label:'Türkçe'},{code:'en',label:'İngilizce'}]}}; prepareAnalysisView(analysis.filename,analysis.size,true); applyAnalysisResult({job_id:'fixture',analysis}); if(shouldScroll)document.querySelector('#analysisView').scrollIntoView(); }'''
+            setup += '''function qaIconIdentity(){openInstalledApps();const images=[...document.querySelectorAll('.installed-app-icon')];const same=()=>images.every((image,i)=>image===document.querySelectorAll('.installed-app-icon')[i]);renderInstalledApps('Test uygulaması 2');renderInstalledApps();openInstalledApps();onInstalledPackagesLoaded(JSON.stringify(qaApps));const passed=images.length===100&&same();document.querySelector('#qaResult').textContent=passed?'PASS: 100 ikon düğümü korundu':'FAIL: ikon değişti';}'''
+            capture_actions = {
+                "apps": "setTimeout(()=>openInstalledApps(),900);",
+                "analysis": "setTimeout(()=>qaAnalysis(true,false),1100);",
+                "messages": "setTimeout(()=>{qaAnalysis(true,false);setTimeout(()=>openMessageReview(),450);},900);",
+                "working": "setTimeout(()=>{showView('#workingView');resetProgress();updateProgress(50,'Yerel işlem sürüyor');},1100);",
+                "result": "setTimeout(()=>showView('#resultView'),1100);",
+            }
+            capture_action = capture_actions.get(capture, "")
+            html = html.replace('</body>', controls + '<script>const qaMarks=' + json.dumps(marks) + ';' + setup + 'renderNetworks({detections:qaMarks,network_count:18,dex_count:3});' + capture_action + '</script><script src="/qa-motion.js"></script></body>')
+            self.reply(html, "text/html")
+        elif path == "/qa-motion.js":
+            self.reply((ROOT / "tests" / "ui_motion_probe.js").read_text(encoding="utf-8"), "text/javascript")
+        elif path == "/api/status":
+            self.reply(json.dumps(dict(toolchain=TOOLS, platform="android", clients=[], channel="stable", version="0.6.2", engine_version="2.0")))
+        elif path == "/api/history":
+            self.reply('{"jobs":[]}')
+        elif path.endswith('/report'):
+            self.reply("Görsel test raporu\nOrijinal paket korundu.\n" * 70, "text/plain")
+        elif path.startswith('/api/'):
+            self.reply('{}')
+        else:
+            super().do_GET()
+
+    def do_POST(self):
+        self.rfile.read(int(self.headers.get("Content-Length", "0")))
+        if urlsplit(self.path).path.endswith("/message-candidates"):
+            candidates = [dict(id="classes.dex:lc-fixture", dex="classes.dex", kind="Diyalog",
+                owner_class="Lexample/MainActivity;", owner_method="onCreate", target_class="Lxpk8a;",
+                target_method="StartGame", location="before_super", confidence="candidate", focus="priority", deferred=False,
+                trace="Lxpk8a;->StartGame(Context)V > Landroid/app/AlertDialog;->show()V")]
+            candidates.append(dict(candidates[0], id="classes.dex:lc-toast", kind="Toast", target_method="Start"))
+            candidates.append(dict(candidates[0], id="classes.dex:lc-other", focus="other", confidence="review", target_method="init"))
+            self.reply(json.dumps(dict(candidates=candidates, count=len(candidates))))
+        else:
+            self.send_error(404)
+
+if __name__ == "__main__":
+    print("UI fixture: http://127.0.0.1:18081/?embedded=android", flush=True)
+    ThreadingHTTPServer(("127.0.0.1", 18081), Handler).serve_forever()

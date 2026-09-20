@@ -1,0 +1,4 @@
+html.ui-boot *, html.ui-boot *::before, html.ui-boot *::after {
+  animation: none !important;
+  transition: none !important;
+}
