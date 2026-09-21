@@ -67,21 +67,8 @@ next-env.d.ts
 /android/signing/*.p12
 /android/signing/*.jks
 
-# Public, non-secret build metadata required by the Vite configuration.
-# Keep every other file in these generated/tool-owned directories ignored.
-!/.openai/
-/.openai/*
-!/.openai/hosting.json
-!/build/
-/build/*
-!/build/sites-vite-plugin.ts
-
-# Internal screenshot drafts may contain local test-session details. Publish
-# only the reviewed, privacy-safe images referenced by the public changelog.
-/release-assets/v0.6.0-review/*
-!/release-assets/v0.6.0-review/01-split-bilesen-secimi-hq.png
-!/release-assets/v0.6.0-review/02-temizlik-profilleri-ve-iyilestirmeler-hq.png
-!/release-assets/v0.6.0-review/03-motor-2-ve-yerel-https-hq.png
-!/release-assets/v0.6.0-review/04-yerel-ag-oturumlari-hq-blur.png
-!/release-assets/v0.6.0-review/05-islem-gecmisi-hq.png
-/release-assets/v0.6.0/04-yerel-ag-ve-islem-gecmisi.png
+# Removed historical screenshots remain available locally but are not part of
+# the public repository's current-version source tree.
+/release-assets/v0.6.0-review/
+/release-assets/v0.6.0/
+/release-assets/APK-Cleaner-Studio-v0.6.1-cover*.png

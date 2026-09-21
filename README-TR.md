@@ -4,13 +4,13 @@
   <img src="release-assets/v0.6.2/APK-Cleaner-Studio-v0.6.2-Tanitim-Kapagi.png" alt="APK Cleaner Studio v0.6.2 tanıtım kapağı" width="100%">
 </p>
 
-[İngilizce açıklama](README.md) · [Termux kurulumu](README-TERMUX.md) · [Kaynaktan derleme](BUILDING.md) · [v0.6.2 sürüm notları](RELEASE-NOTES-v0.6.2.md)
+[English README](README-EN.md) · [Termux kurulumu](README-TERMUX.md) · [Kaynaktan derleme](BUILDING.md) · [v0.6.2 sürüm notları](RELEASE-NOTES-v0.6.2.md)
 
 Windows ve Android/Termux üzerinde çalışan, tamamen yerel APK reklam temizleme ve split paket dönüştürme yöneticisi.
 
 ## İndirme
 
-Güncel kararlı paketleri [GitHub Releases](../../releases/latest) bölümünden indirebilirsin:
+Güncel kararlı paketleri [GitHub Releases](https://github.com/MustafaErdqn/APK-Cleaner-Studio/releases/latest) bölümünden indirebilirsin:
 
 | Platform | Paket |
 | --- | --- |
