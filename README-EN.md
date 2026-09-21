@@ -1,7 +1,7 @@
 # APK Cleaner Studio v0.6.2
 
 <p align="center">
-  <img src="release-assets/v0.6.2/APK-Cleaner-Studio-v0.6.2-Tanitim-Kapagi.png" alt="APK Cleaner Studio v0.6.2 promotional cover" width="100%">
+  <img src="release-assets/APK-Cleaner-Studio-README-Kapagi.png" alt="APK Cleaner Studio promotional cover" width="100%">
 </p>
 
 [Türkçe README](README.md) · [Termux installation](README-TERMUX.md) · [Build from source](BUILDING.md) · [v0.6.2 release notes](RELEASE-NOTES-v0.6.2.md)
