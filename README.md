@@ -6,11 +6,13 @@
 
 [English README](README-EN.md) · [Termux kurulumu](README-TERMUX.md) · [Kaynaktan derleme](BUILDING.md) · [v0.6.2 sürüm notları](RELEASE-NOTES-v0.6.2.md)
 
-Windows ve Android/Termux üzerinde çalışan, tamamen yerel APK reklam temizleme ve split paket dönüştürme yöneticisi.
+APK Cleaner Studio; APK, APKS, APKM ve XAPK paketlerini yerel olarak analiz eden, doğrulanmış reklam izlerini temizleyen ve split paketleri tek kurulabilir APK’da birleştiren bir Android paket işleme aracıdır. Kaynak paket değiştirilmez; bütün işlemler yeni bir çıktı dosyası üzerinde gerçekleştirilir.
+
+**Kararlı sürüm:** v0.6.2 · **Motor:** 2.0 · **Platformlar:** Android, Windows ve Termux
 
 ## İndirme
 
-Güncel kararlı paketleri [GitHub Releases](https://github.com/MustafaErdqn/APK-Cleaner-Studio/releases/latest) bölümünden indirebilirsin:
+Güncel kararlı paketleri [GitHub Releases](https://github.com/MustafaErdqn/APK-Cleaner-Studio/releases/latest) sayfasından indirebilirsin:
 
 | Platform | Paket |
 | --- | --- |
@@ -18,49 +20,98 @@ Güncel kararlı paketleri [GitHub Releases](https://github.com/MustafaErdqn/APK
 | Windows | `APK-Cleaner-Studio-v0.6.2-Windows.exe` |
 | Termux | `APK-Cleaner-Studio-v0.6.2-Termux.zip` |
 
-İndirdiğin dosyayı aynı sürümde yayımlanan `SHA256-v0.6.2.txt` ile doğrulayabilirsin. Görselli sürüm özeti [Telegraph sayfasında](https://telegra.ph/APK-Cleaner-Studio-v062--Kararl%C4%B1-S%C3%BCr%C3%BCm-Notlar%C4%B1-09-20) yer alır.
+İndirdiğin paketi aynı sürümle yayımlanan `SHA256-v0.6.2.txt` dosyasıyla doğrulayabilirsin. Yeniliklerin görsellerle anlatıldığı sürüm özeti [Telegraph sayfasında](https://telegra.ph/APK-Cleaner-Studio-v062--Kararl%C4%B1-S%C3%BCr%C3%BCm-Notlar%C4%B1-09-20) yer alır.
 
-## Yeni sürümde neler var?
+## Neler yapar?
 
-- Normal reklam yamasında DEX’i ayıklamaz veya yeniden oluşturmaz; hedef komut baytlarını dosya içinde aynı uzunlukta ve yerinde değiştirir.
-- Baksmali/Smali araçlarını kullanmaz ve ara kod klasörü üretmez; yalnızca DEX konumlarını okumak için gereken DexLib2 çalışma sınıflarını taşır.
-- Yeniden paketlemede hızlı sıkıştırma kullanır; uygulanan yama kapsamı değişmez.
-- Dengeli ve Kapsamlı profillerde aday manifest kayıtları ve reklam bileşenleri denetlenir.
-- Bilinen reklam SDK görünümü taşıyan `res/layout*.xml` öğeleri `0dp` ve `gone` ile gizlenir.
-- `.apks`, `.apkm` ve `.xapk` paketlerini tek, imzalı `.apk` dosyasına dönüştürür.
-- Split dönüştürme sırasında reklam yamalarını isteğe bağlı olarak uygular.
-- İsteğe bağlı DEX hata ayıklama verisi temizliği ve kaynak adı normalleştirme sunar.
-- Eksik Java çalışma ortamını ve işlem bileşenlerini **Eksik bileşenleri hazırla** düğmesiyle otomatik olarak kurar.
-- Daha profesyonel açık, sistem ve koyu tema içerir.
+- Yerleşik 18 mobil reklam SDK ailesini DEX, manifest, metadata, XML, asset ve native kütüphane izleri üzerinden denetler.
+- Doğrulanmış reklam çağrılarını seçilen temizlik kapsamına göre güvenli biçimde etkisizleştirir.
+- APKS, APKM ve XAPK içindeki taban, özellik ve yapılandırma split bileşenlerini tek imzalı APK’da birleştirir.
+- Split paketlerde işlemci mimarisi, dil ve DPI bileşenlerinin seçilmesine izin verir.
+- Başlangıç akışına sonradan eklenmiş olabilecek Toast, Snackbar, DialogFragment ve PopupWindow çağrılarını incelemeye sunar.
+- Android’de cihazda yüklü uygulamaları simgesi, paket adı ve sürüm numarasıyla listeler; seçilen uygulamayı paylaşabilir veya doğrudan işleme alabilir.
+- İşlem raporlarını, çıktı dosyalarını ve geçmiş işlemleri aynı yerel arayüzden yönetir.
+- Açık, koyu ve sistem temalarını destekler; masaüstü ve mobil ekranlara uyum sağlar.
 
-## Windows — tek EXE
+Dosyalar en fazla 1 GB olabilir. Analiz ve düzenleme işlemleri kullanılan cihazda gerçekleşir; paketler harici bir sunucuya gönderilmez.
 
-`APK-Cleaner-Studio-v0.6.2-Windows.exe` dosyasına çift tıkla. Profesyonel Türkçe başlangıç ekranı gösterilir ve tarayıcı otomatik açılır; Python, BAT dosyası veya önceden Java kurulumu gerekmez. Java eksikse arayüzdeki bileşen hazırlama düğmesi doğrulanmış taşınabilir Java çalışma ortamını kullanıcı klasörüne kurar.
+## İş akışı
 
-0.6.2 sürümü Motor 2.0 altyapısını; seçilebilir split bileşenleri, işlem iptali, yerel ağ oturum yönetimi, işlem geçmişi, isteğe bağlı yerel HTTPS ve iyileştirilmiş masaüstü/mobil deneyimiyle bir araya getirir. İsteğe bağlı ZIP hizalaması ve RES kaynak korumasını kaldırma seçenekleri korunur.
+1. Bir APK, APKS, APKM veya XAPK dosyası seçilir. Android sürümünde paket, **Yüklü uygulamalardan seç** düğmesiyle cihazdan da alınabilir.
+2. Motor paketi tarar; reklam ağlarını, DEX dosyalarını, manifest kayıtlarını, XML adaylarını ve split bileşenlerini raporlar.
+3. Uygulanacak işlem, temizlik kapsamı ve isteğe bağlı iyileştirmeler seçilir.
+4. İşlem yeni bir dosya üzerinde yürütülür; sonuç APK’sı, ayrıntılı rapor ve işlem özeti hazırlanır.
 
-Windows başlangıç ekranı 110 sütun × 30 satır ölçüsünde düzenlenir; bağlantı, gizlilik, oturum ve güvenli kapatma bilgileri tek bakışta gösterilir. Web arayüzünün alt bölümünde APK Repo Grubu telif bilgisiyle birlikte resmi web sitesi ve Telegram topluluğu bağlantıları yer alır.
+İşlem sürerken iptal edilebilir. Orijinal paket hiçbir aşamada değiştirilmez.
 
-Program varsayılan olarak yerel ağda dinler. Konsolda hem bu bilgisayarda kullanılacak `127.0.0.1` adresi hem de aynı Wi‑Fi ağına bağlı telefon ve bilgisayarların kullanacağı yerel ağ adresi gösterilir. Bu erişim yalnızca güvenilen özel ağlarda kullanılmalıdır.
+## İşlem türleri
 
-Windows yerel arayüzü HTTPS üzerinden açabilir. İlk çalıştırmada Windows, yalnızca mevcut kullanıcı için bu bilgisayara özel yerel sertifikaya güvenme onayı gösterir. Onay verildiğinde `127.0.0.1` bağlantısı tarayıcıda güvenli HTTPS olarak çalışır; özel anahtar cihazda kalır. Termux sürümü ise sertifika uyarısını önlemek için varsayılan olarak yerel HTTP adresini açar; HTTPS desteği isteğe bağlı olarak kullanılabilir.
+### Reklam izlerini temizle
 
-Yerel ağa telefondan bağlanıldığında Android bilgisayarın yerel sertifika otoritesini kendiliğinden tanımaz. İsteğe bağlı HTTPS kullanmak için arayüzde **Yerel işlem motoru → Mobil HTTPS sertifikası** bölümünden CA sertifikasını indirip Android güvenlik ayarlarında bir kez CA sertifikası olarak yükle; ardından kullandığın tarayıcıyı tamamen kapatıp yeniden aç. Tarayıcı sertifikayı kabul etmezse yerel HTTP adresi kullanılabilir.
+Doğrulanmış DEX çağrılarını, manifest kayıtlarını ve XML reklam alanlarını seçilen profile göre düzenler. Normal reklam yaması, DEX üzerinde decompile işlemi yapmaz ve Smali/Baksmali ara kodu üretmez; hedef komut baytlarını mümkün olduğunda aynı uzunluğu koruyarak yerinde değiştirir.
 
-Program açılışta aynı klasördeki daha yeni Windows sürümlerini kontrol eder. HTTPS güncelleme kanalı yapılandırıldığında uzak sürümleri de denetler ve arayüzde sürüm notu ile indirme bildirimi gösterir. Program kendiliğinden mevcut EXE'nin üzerine yazmaz.
+Reklam temizliği zorunlu değildir. Analizde doğrulanmış bir reklam ağı bulunmazsa profil kartları devre dışı kalır; bağımsız iyileştirmeler yine kullanılabilir.
 
-LAN erişimi için EXE’yi `--host 0.0.0.0` parametresiyle başlatabilirsin. LAN modu kimlik doğrulaması içermez; yalnızca güvendiğin özel ağda kullan.
+### Tek APK oluştur
+
+APKS, APKM veya XAPK paketindeki split modülleri tek kurulabilir APK’da birleştirir. Uygun paketlerde işlemci mimarisi, dil ve DPI bileşenleri ayrı ayrı seçilebilir. Reklam temizliği bu işlemden bağımsızdır; istenirse **Dönüştürme sırasında reklam yaması uygula** seçeneğiyle aynı çıktıya eklenebilir.
+
+## Temizlik kapsamları
+
+- **Güvenli:** Yalnızca doğrulanmış reklam yükleme ve gösterme çağrılarını etkisizleştirir. En az müdahale gerektiren profildir.
+- **Dengeli:** Güvenli profile ek olarak manifest kayıtlarını ve doğrulanmış XML reklam alanlarını düzenler. Varsayılan ve önerilen seçenektir.
+- **Gelişmiş:** Dengeli profile ek olarak kesin eşleşen reklam asset ve native SDK kalıntılarını hedefler.
+
+Dengeli ve Gelişmiş profillerde, bilinen reklam görünümü taşıyan `res/layout*.xml` öğeleri `0dp` ve `gone` kullanılarak gizlenir. Nesne döndüren ve otomatik olarak değiştirilmesi uygulamayı bozabilecek riskli çağrılar yalnızca raporlanır.
+
+## Başlangıç mesajlarını incele
+
+Motor; Activity, Fragment ve Application sınıflarının `onCreate`, `onResume` ve benzeri başlangıç yollarından ulaşılan mesaj çağrılarını inceler. Toast, Snackbar, DialogFragment ve PopupWindow gibi adaylar bağlamlarıyla birlikte listelenir.
+
+Hiçbir aday otomatik olarak seçilmez. Yalnızca kullanıcının işaretlediği başlangıç çağrısı, aynı komut uzunluğu korunarak etkisizleştirilir; Activity gövdesi veya ortak `show()` yöntemleri topluca silinmez. Bir çağrının sonradan eklendiği, yalnızca APK incelenerek kesin biçimde kanıtlanamayacağı için son karar kullanıcıya bırakılır.
+
+## İsteğe bağlı iyileştirmeler
+
+Aşağıdaki dört seçenek reklam temizliğinden ve birbirinden bağımsızdır:
+
+- **DEX hata ayıklama verilerini kaldır:** Kaynak dosya, satır, yerel değişken ve diğer hata ayıklama kayıtlarını temizler. Bu işlem seçildiğinde ilgili DEX dosyaları yeniden yazılır; Smali/Baksmali kullanılmaz.
+- **DEX yapısını yeniden düzenle:** Standart DEX yapısını doğrular ve DexLib2 ile yeniden yazar. Eşleme dosyası olmadan özgün sınıf veya yöntem adlarını geri getirmez. Motor, DEX yapısını güvenli biçimde okuyamazsa bozuk bir çıktı üretmek yerine işlemi durdurur.
+- **Yamalanan APK’yı optimize et:** İmzalamadan önce standart ZIP hizalaması uygular. DEX, manifest veya RES içeriğini yeniden derlemez; yalnızca APK içindeki dosyaların ZIP yerleşimini düzenler.
+- **RES kaynak korumasını kaldır:** APKEditor’ün yalın `x` işlemini (`java -jar APKEditor.jar x -i giriş.apk -o çıkış.apk`) doğrudan uygular. `-fix-types` kullanılmaz; APKEditor’ün ürettiği paket sonraki aşamaya olduğu gibi aktarılır.
+
+Split paket dönüşümünde ayrıca **Dönüştürme sırasında reklam yaması uygula** seçeneği gösterilir. Bu seçenek, **Tek APK oluştur** işlemi tamamlanırken seçilen Güvenli, Dengeli veya Gelişmiş kapsamı aynı çıktıya uygular.
+
+## Android
+
+Android paketi `com.apkrepo.apkcleanerstudio` kimliğini ve `62` sürüm kodunu kullanır. En düşük Android sürümü Android 8.0’dır (API 26). v0.6.2 paketi, aynı kimliğe sahip v0.6.1 kurulumunun üzerine güncellenebilir.
+
+Android sürümüne özgü özellikler:
+
+- Cihazda yüklü uygulamaları ad, simge, paket kimliği ve sürüm numarasıyla arama ve seçme.
+- Seçilen uygulamanın base APK’sını ve varsa split bileşenlerini birlikte hazırlama.
+- Kaynak paketi Android paylaşım menüsüyle dışarı aktarma.
+- Oluşturulan APK’yı indirme, paylaşma veya doğrudan sistem paket yükleyicisine gönderme.
+- Yükleme öncesinde Android sürümü, işlemci mimarisi, mevcut kurulum ve olası imza çakışmalarını denetleme.
+- WebView beklenmedik biçimde kapanırsa uygulamayı kapatmadan arayüzü yeniden açma.
+
+## Windows
+
+`APK-Cleaner-Studio-v0.6.2-Windows.exe` dosyasını çalıştırman yeterlidir. Ayrı bir Python kurulumu veya BAT dosyası gerekmez. Java ya da gerekli işlem bileşenleri eksikse arayüzdeki **Eksik bileşenleri hazırla** düğmesi, doğrulanmış taşınabilir araç zincirini kullanıcı klasörüne kurar.
+
+Uygulama varsayılan olarak yerel ağda dinler. Konsolda bu bilgisayar için `127.0.0.1` adresi ve aynı güvenilir ağdaki diğer cihazlar için yerel ağ adresi gösterilir. LAN erişimi kimlik doğrulaması içermez; yalnızca güvendiğin özel ağlarda kullanılmalıdır.
+
+Windows yerel arayüzü isteğe bağlı HTTPS ile çalışabilir. Yerel sertifikaya güven verildiğinde `127.0.0.1` bağlantısı HTTPS’e yükseltilir; sertifikanın özel anahtarı cihazdan çıkarılmaz. Telefonda HTTPS kullanmak için arayüzdeki **Yerel işlem motoru → Mobil HTTPS sertifikası** bölümünden CA sertifikası indirilebilir. Sertifika kurulmak istenmiyorsa yerel HTTP bağlantısı kullanılmaya devam edilebilir.
 
 ## Termux
 
-ZIP’i çıkardıktan sonra önce Termux’ta paketin bulunduğu klasöre gir. Paket Android’in İndirilenler klasöründeyse örnek:
+ZIP paketini çıkardıktan sonra Termux’ta ilgili klasöre gir. Paket Android’in İndirilenler klasöründeyse örnek:
 
 ```bash
 termux-setup-storage
 cd ~/storage/downloads/APK-Cleaner-Studio-v0.6.2-Termux
 ```
 
-Ardından ilk kurulumda bir kez:
+İlk kurulumda bir kez:
 
 ```bash
 bash install-termux.sh
@@ -72,37 +123,21 @@ Sonraki kullanımlarda:
 bash start-termux.sh
 ```
 
-Klasör konumu farklıysa `cd` komutunda ZIP’i çıkardığın gerçek klasör yolunu kullan. Ayrıntılı adımlar `README-TERMUX.md` dosyasındadır.
+Yükleyici, Termux deposunda bulunduğunda OpenJDK 25’i kullanır; cihaz mimarisi veya kullanılan depo bu paketi sunmuyorsa OpenJDK 21 ile devam eder. Termux:Widget kuruluysa ana ekran kısayolu da hazırlanır. Ayrıntılı kurulum bilgileri [README-TERMUX.md](README-TERMUX.md) dosyasındadır.
 
-Termux:Widget kuruluysa yükleyici ana ekran kısayolu hazırlar.
+## Raporlar, geçmiş ve yerel veriler
 
-Kurulum, güncel Termux deposunda mevcutsa OpenJDK 25’i yükler; paket cihaz mimarisi veya kullanılan depo için sunulmuyorsa OpenJDK 21 ile uyumlu kuruluma devam eder. Uygulama `Ctrl+C` ile kapatıldığında başlatıcı kendi sunucu sürecini temizler; beklenmeyen kapanıştan kalan APK Cleaner Studio süreci sonraki başlangıçta güvenli biçimde sonlandırılır.
-
-## İşlem türleri
-
-- **Reklamları temizle:** Güvenli DEX çağrılarını yamar; seçilen temizlik profiline göre manifest kayıtlarını, XML reklam görünümlerini ve doğrulanmış SDK kalıntılarını temizler.
-- **Tek APK’ya dönüştür:** APKS, APKM veya XAPK içindeki taban, özellik ve yapılandırma split’lerini birleştirir. İstersen aynı işlemde reklam yamalarını da uygular.
-
-## Profiller
-
-- **Güvenli:** Kesin `void` reklam yükleme/gösterme çağrılarını etkisizleştirir.
-- **Dengeli:** DEX yamalarına ek olarak manifesti denetler; bilinen reklam SDK bileşenlerini ve kesin XML reklam görünümlerini temizler.
-- **Kapsamlı:** Dengeli profile ek olarak kesin eşleşen reklam asset ve native kütüphane kalıntılarını kaldırır.
-
-## İsteğe bağlı iyileştirmeler
-
-- **Dönüştürme sırasında reklam yaması uygula:** APKS, APKM veya XAPK paketini tek APK’ya dönüştürürken seçtiğin Güvenli, Dengeli ya da Kapsamlı reklam temizleme profilini aynı işlem içinde uygular. Bu seçenek yalnızca split paket dönüşümünde gösterilir.
-- **DEX hata ayıklama verilerini kaldır:** DEX kaynak, satır, yerel değişken ve benzeri hata ayıklama kayıtlarını temizler. Bu isteğe bağlı işlemde DEX yeniden yazılır; Smali/Baksmali kullanılmaz.
-- **Yamalanan APK’yı optimize et:** İmzalamadan önce standart ZIP hizalaması uygular. DEX, manifest veya RES içeriğini yeniden derlemez ve RES kaynak koruması oluşturmaz; yalnızca APK içindeki dosyaların ZIP yerleşimini düzenler. APK boyutu birkaç KB artabilir.
-- **RES kaynak korumasını kaldır:** APKEditor’ün yalın `x` işlemini (`java -jar APKEditor.jar x -i giriş.apk -o çıkış.apk`) paket üzerinde doğrudan çalıştırır. `-fix-types` kullanılmaz; manifest veya diğer binary XML dosyaları ayrıca yedeklenip geri yüklenmez. APKEditor’ün ürettiği paket sonraki aşamaya olduğu gibi aktarılır.
-
-Bu seçenekler birbirinden bağımsızdır. İhtiyacın olanları birlikte seçebilirsin; seçilmeyen iyileştirmeler uygulanmaz.
+- Sonuç ekranında **Raporu aç**, **Paylaş**, **APK’yı yükle** ve **APK’yı indir** seçenekleri, platformun desteklediği ölçüde gösterilir.
+- Tamamlanan işlemler yeniden açılabilir; rapor ve çıktı hazırsa doğrudan görüntülenebilir veya indirilebilir.
+- Kaynak paketler, raporlar ve çıktılar 14 gün boyunca yalnızca yerel cihazda tutulur. İstenmeyen kayıtlar geçmiş listesinden silinebilir.
+- Yerel ağ oturumları 10 saniyede bir yenilenir; bağlantısı kesilen cihazlar 5 dakika sonra listeden kaldırılır. Verilen görünen ad yalnızca uygulamanın çalıştığı cihazda saklanır.
 
 ## Sınırlar ve güvenlik
 
-- Her APK’da yüzde yüz otomatik ve bozulmasız reklam temizliği garanti edilemez.
-- Nesne döndüren riskli reklam çağrıları, çökme üretmemek için otomatik olarak `null` yapılmaz; rapora bırakılır.
-- Yeniden imzalanan APK, mağaza sürümünün üzerine doğrudan kurulamayabilir.
-- Universal APK üretimi, bazı isteğe bağlı özellik modüllerinde uygulamanın kendi split varsayımlarına bağlıdır.
-- Üçüncü taraf ücretli özellikleri, satın almaları veya lisans kontrollerini atlatmaz.
+- Her APK’da yüzde yüz otomatik ve sorunsuz reklam temizliği garanti edilemez.
+- Yeniden imzalanan APK, mağaza sürümünün veya farklı anahtarla imzalanmış mevcut kurulumun üzerine yüklenemeyebilir.
+- Universal APK üretimi, bazı isteğe bağlı özellik modüllerinde kaynak uygulamanın split varsayımlarına bağlıdır.
+- Uygulama ücretli özellikleri, satın almaları, abonelikleri veya lisans kontrollerini atlatmak için tasarlanmamıştır.
 - Yalnızca sahibi olduğun ya da değiştirme ve test etme yetkisine sahip olduğun paketlerde kullan.
+
+Kaynak koddan derleme, yerel imzalama anahtarı oluşturma ve paketleme adımları için [BUILDING.md](BUILDING.md) dosyasına bakabilirsin.
