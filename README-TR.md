@@ -140,4 +140,10 @@ Yükleyici, Termux deposunda bulunduğunda OpenJDK 25’i kullanır; cihaz mimar
 - Uygulama ücretli özellikleri, satın almaları, abonelikleri veya lisans kontrollerini atlatmak için tasarlanmamıştır.
 - Yalnızca sahibi olduğun ya da değiştirme ve test etme yetkisine sahip olduğun paketlerde kullan.
 
+## Lisans
+
+APK Cleaner Studio, `Copyright (C) 2026 APK Repo Grubu` bildirimiyle GNU General Public License v3.0 kapsamında açık kaynak olarak yayımlanır. Uygulamayı lisans koşullarına uyarak kullanabilir, inceleyebilir, değiştirebilir ve yeniden dağıtabilirsin. Tam metin için [LICENSE](LICENSE) dosyasına bakabilirsin.
+
+Üçüncü taraf bileşenler kendi lisanslarını korur; ayrıntılar [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) dosyasındadır.
+
 Kaynak koddan derleme, yerel imzalama anahtarı oluşturma ve paketleme adımları için [BUILDING.md](BUILDING.md) dosyasına bakabilirsin.

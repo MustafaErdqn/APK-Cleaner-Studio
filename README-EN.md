@@ -140,4 +140,10 @@ The installer uses OpenJDK 25 when it is available in the Termux repository. If 
 - The application is not designed to bypass paid features, purchases, subscriptions, or license checks.
 - Use it only with packages you own or are authorized to modify and test.
 
+## License
+
+APK Cleaner Studio is released as open-source software under the GNU General Public License v3.0 with the notice `Copyright (C) 2026 APK Repo Grubu`. You may use, inspect, modify, and redistribute the application in accordance with the license terms. See [LICENSE](LICENSE) for the complete text.
+
+Third-party components retain their respective licenses; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for details.
+
 See [BUILDING.md](BUILDING.md) for source-build, local signing-key generation, and packaging instructions.
