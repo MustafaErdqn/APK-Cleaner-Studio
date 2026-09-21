@@ -12,7 +12,7 @@ APK Cleaner Studio; APK, APKS, APKM ve XAPK paketlerini yerel olarak analiz eden
 
 ## İndirme
 
-Güncel kararlı paketleri [GitHub Releases](https://github.com/MustafaErdqn/APK-Cleaner-Studio/releases/latest) sayfasından indirebilirsin:
+Güncel kararlı paketleri [GitHub Releases](https://github.com/APKRepoGroup/APK-Cleaner-Studio/releases/latest) sayfasından indirebilirsin:
 
 | Platform | Paket |
 | --- | --- |

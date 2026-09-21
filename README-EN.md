@@ -12,7 +12,7 @@ APK Cleaner Studio is a local Android package-processing tool that analyzes APK,
 
 ## Download
 
-Download the current stable packages from [GitHub Releases](https://github.com/MustafaErdqn/APK-Cleaner-Studio/releases/latest):
+Download the current stable packages from [GitHub Releases](https://github.com/APKRepoGroup/APK-Cleaner-Studio/releases/latest):
 
 | Platform | Package |
 | --- | --- |
