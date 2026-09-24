@@ -1,6 +1,6 @@
 {
   "name": "apk-cleaner-studio",
-  "version": "0.6.2",
+  "version": "0.6.3-dev.1",
   "private": true,
   "license": "GPL-3.0-only",
   "engines": {
@@ -11,11 +11,9 @@
     "build": "vinext build",
     "start": "vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
-    "lint": "eslint app db worker studio/web tests examples eslint.config.mjs drizzle.config.ts next.config.ts postcss.config.mjs vite.config.ts --max-warnings 0",
-    "db:generate": "drizzle-kit generate"
+    "lint": "eslint app worker studio/web tests eslint.config.mjs next.config.ts postcss.config.mjs vite.config.ts --max-warnings 0"
   },
   "dependencies": {
-    "drizzle-orm": "0.45.2",
     "next": "16.3.5",
     "react": "19.2.6",
     "react-dom": "19.2.6"
@@ -28,7 +26,6 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
     "@vitejs/plugin-rsc": "0.5.26",
-    "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
     "eslint-config-next": "16.3.5",
     "react-server-dom-webpack": "19.2.6",

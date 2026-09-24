@@ -1,6 +1,6 @@
 # APK Cleaner Studio — Kaynaktan derleme
 
-Bu belge APK Cleaner Studio v0.6.2 kaynak ağacını doğrulamak ve Android, Windows veya Termux paketlerini yeniden üretmek isteyen geliştiriciler içindir.
+Bu belge APK Cleaner Studio kaynak ağacını doğrulamak ve Android, Windows veya Termux paketlerini yeniden üretmek isteyen geliştiriciler içindir. Üretilen dosya adlarındaki sürüm, kökteki `VERSION.txt` değerinden alınır.
 
 ## Kaynak ağacında bulunmayan özel dosyalar
 
@@ -67,7 +67,7 @@ Proje kökünde PowerShell ile:
 ./android/build-android.ps1 -Variant Release
 ```
 
-`ANDROID_SDK_ROOT`, `APK_CLEANER_GRADLE_HOME`, `APK_CLEANER_ANDROID_JDK` ve `APK_CLEANER_PYTHON` ortam değişkenleri gerektiğinde özel araç yollarını göstermek için kullanılabilir. Çıktı `outputs/APK-Cleaner-Studio-v0.6.2-Android.apk` olarak hazırlanır ve imza ile ZIP hizalaması doğrulanır.
+`ANDROID_SDK_ROOT`, `APK_CLEANER_GRADLE_HOME`, `APK_CLEANER_ANDROID_JDK` ve `APK_CLEANER_PYTHON` ortam değişkenleri gerektiğinde özel araç yollarını göstermek için kullanılabilir. Çıktı `outputs/APK-Cleaner-Studio-v<SÜRÜM>-Android.apk` olarak hazırlanır ve imza ile ZIP hizalaması doğrulanır.
 
 ## Termux paketi
 
@@ -77,8 +77,8 @@ Python 3 ile:
 python packaging/build_termux.py
 ```
 
-Çıktı `outputs/APK-Cleaner-Studio-v0.6.2-Termux.zip` olarak oluşturulur.
+Çıktı `outputs/APK-Cleaner-Studio-v<SÜRÜM>-Termux.zip` olarak oluşturulur.
 
 ## Sürüm bütünlüğü
 
-Dağıtımdan önce üç platform paketi için SHA-256 değerlerini yeniden üret ve yayımlanan `SHA256-v0.6.2.txt` dosyasıyla birlikte paylaş. Kaynak ağacındaki geçici çalışma dosyaları ile yerel anahtarlar paketlere eklenmemelidir.
+Dağıtımdan önce üç platform paketi için SHA-256 değerlerini yeniden üret ve `SHA256-v<SÜRÜM>.txt` dosyasıyla birlikte paylaş. Kaynak ağacındaki geçici çalışma dosyaları ile yerel anahtarlar paketlere eklenmemelidir.
