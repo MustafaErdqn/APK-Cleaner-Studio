@@ -44,7 +44,7 @@ from engine import (
     terminate_active_tools,
 )
 from setup_tools import install as install_tools
-from updater import check_for_updates
+from updater import check_for_updates, stage_update
 from device_catalog import DeviceCatalog
 
 
@@ -67,8 +67,8 @@ MAX_JOB_DIRECTORIES = 100
 MAX_OWNER_JOBS = 25
 MAX_JOB_STORAGE_BYTES = 4 * 1024 * 1024 * 1024
 JOB_ID = re.compile(r"^[a-f0-9]{32}$")
-VERSION = "0.6.2"
-RELEASE_CHANNEL = "stable"
+VERSION = "0.6.3-dev.1"
+RELEASE_CHANNEL = "dev"
 DEFAULT_HOST = "0.0.0.0"
 CONSOLE_COLUMNS = 110
 CONSOLE_ROWS = 30
@@ -1497,7 +1497,10 @@ class StudioHandler(BaseHTTPRequestHandler):
             })
             return
         if path == "/api/update":
-            self.send_json(check_for_updates(VERSION))
+            result = check_for_updates(VERSION)
+            if result.get("update") and not self.requester_is_local():
+                result["update"] = {**result["update"], "automatic": False, "install_mode": "manual"}
+            self.send_json(result)
             return
 
         requester_id = client_identity(self.request_address(), self.headers)
@@ -1747,6 +1750,26 @@ class StudioHandler(BaseHTTPRequestHandler):
                 manage_client(str(payload.get("target_id", "")), str(payload.get("action", "")), self.requester_is_local())
                 clients = record_client(self.request_address(), self.headers)
                 self.send_json({"ok": True, "clients": clients})
+                return
+
+            if path == "/api/update/apply":
+                if not self.requester_is_local():
+                    self.send_json({"error": "Güncelleme yalnızca uygulamanın çalıştığı cihazdan başlatılabilir."}, HTTPStatus.FORBIDDEN)
+                    return
+                with _ACTIVE_JOBS_LOCK:
+                    if _SCANNING_JOBS or _ACTIVE_JOBS:
+                        raise ValueError("Güncellemeden önce devam eden paket işleminin tamamlanmasını bekle.")
+                result = stage_update(VERSION)
+                self.send_json(result)
+                if result.get("shutdown"):
+                    def stop_for_update() -> None:
+                        server = _ACTIVE_SERVER
+                        if server is not None:
+                            server.shutdown()
+
+                    timer = threading.Timer(0.8, stop_for_update)
+                    timer.daemon = True
+                    timer.start()
                 return
 
             if path == "/api/setup":

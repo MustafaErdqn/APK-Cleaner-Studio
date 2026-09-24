@@ -5,8 +5,8 @@ Bu modül, Windows ve Termux sürümlerindeki ortak web arayüzünü uygulama i�
 ## Hedef paket
 
 - Uygulama kimliği: `com.apkrepo.apkcleanerstudio`
-- Sürüm adı: `0.6.2`
-- Sürüm kodu: `62`
+- Sürüm adı: `0.6.3-dev.1`
+- Sürüm kodu: `6301`
 - Minimum Android: 8.0 / API 26
 - Hedef mimariler: `arm64-v8a`, `armeabi-v7a`
 - Paketlenen diller: varsayılan İngilizce ve Türkçe
@@ -32,19 +32,8 @@ Android SDK bulunamazsa `ANDROID_SDK_ROOT`, Gradle bulunamazsa `APK_CLEANER_GRAD
 
 ## Güncelleme modeli
 
-`studio/update-channel.json` içindeki HTTPS manifesti Android için `android_url` alanını destekler. Android güvenlik modeli gereği yeni APK kullanıcı onayı olmadan sessizce kurulmaz; uygulama yeni sürümü bildirir, imzalı APK'yı açar ve standart Android güncelleme ekranına bırakır.
+Uygulama, `APKRepoGroup/APK-Cleaner-Studio` deposunun GitHub Releases bölümünü kanalına göre denetler. Kararlı kurulumlara yalnızca yeni kararlı sürümler gösterilir. Bir dev sürümünü kuran kullanıcı daha yeni dev sürümlerini ve o serinin ardından yayımlanan kararlı sürümü alabilir. Draft kayıtları hiçbir kanalda gösterilmez. Android paketi yalnızca beklenen resmî asset adı, depo adresi ve GitHub SHA-256 digest'i eşleştiğinde indirilir. Paket kimliği, sürüm kodu ve imza doğrulandıktan sonra standart Android güncelleme ekranı açılır; Android güvenlik modeli gereği kullanıcı onayı olmadan sessiz kurulum yapılmaz.
 
-Örnek manifest:
-
-```json
-{
-  "version": "0.6.2",
-  "android_url": "https://example.org/APK-Cleaner-Studio-v0.6.2-Android.apk",
-  "windows_url": "https://example.org/APK-Cleaner-Studio-v0.6.2-Windows.exe",
-  "termux_url": "https://example.org/APK-Cleaner-Studio-v0.6.2-Termux.zip",
-  "notes": "Yeni sürüm kullanıma hazır.",
-  "sha256": "..."
-}
-```
+Dev ve kararlı Android paketleri aynı `com.apkrepo.apkcleanerstudio` kimliğini ve aynı dağıtım imzasını kullanır. Dev etiketi yalnızca sürüm adında görünür; cihazda ikinci bir APK Cleaner Studio uygulaması oluşturulmaz. Temizleme motoru çalıştığı sürece ekranın otomatik kapanması geçici olarak engellenir ve işlem tamamlandığında normal uyku davranışı geri yüklenir.
 
 Uygulama kabuğunda değişiklik gerekmeyen arayüz, profil ve Python motor güncellemeleri için derleme betiği ortak kaynakları yeniden eşitler. Android izinleri veya yerel Java katmanı değiştiğinde yeni APK yayımlanır.

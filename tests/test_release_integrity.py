@@ -45,10 +45,10 @@ class ReleaseIntegrityTests(unittest.TestCase):
         self.assertIn(version, (ROOT / "packaging" / "build_termux.py").read_text(encoding="utf-8"))
         self.assertIn(version, (ROOT / "packaging" / "APK-Cleaner-Studio-Windows.spec").read_text(encoding="utf-8"))
 
-    def test_stable_version_uses_stable_release_channel(self):
+    def test_development_version_uses_development_release_channel(self):
         server = (ROOT / "studio" / "server.py").read_text(encoding="utf-8")
-        self.assertIn('VERSION = "0.6.2"', server)
-        self.assertIn('RELEASE_CHANNEL = "stable"', server)
+        self.assertIn('VERSION = "0.6.3-dev.1"', server)
+        self.assertIn('RELEASE_CHANNEL = "dev"', server)
 
     def test_android_readme_matches_actual_package_identity_and_version(self):
         gradle = (ROOT / "android" / "app" / "build.gradle").read_text(encoding="utf-8")
@@ -93,16 +93,16 @@ class ReleaseIntegrityTests(unittest.TestCase):
         self.assertIn('id="supporterList"', html)
         self.assertIn("Ahmet Özesen", html)
         self.assertIn("Zafer Can Şenol", html)
+        self.assertIn("<b>SHADOW</b><small>Destekçi</small>", html)
         self.assertIn("Daimi Destekçi", html)
 
-    def test_termux_installer_and_runtime_version_match_stable_release(self):
+    def test_termux_installer_and_runtime_version_match_development_release(self):
         docs = "\n".join(
             (ROOT / name).read_text(encoding="utf-8")
             for name in ("README.md", "README-TR.md", "README-TERMUX.md", "VERSION.txt")
         )
         self.assertNotIn("0.5.3", docs)
-        self.assertIn("APK Cleaner Studio 0.6.2", docs)
-        self.assertNotIn("0.6.2-dev.7", docs)
+        self.assertIn("APK Cleaner Studio 0.6.3-dev.1", docs)
         installer = (ROOT / "install-termux.sh").read_text(encoding="utf-8")
         self.assertIn("openjdk-25", installer)
         self.assertIn("openjdk-21", installer)
@@ -159,7 +159,20 @@ class ReleaseIntegrityTests(unittest.TestCase):
     def test_update_channel_never_uses_insecure_remote_manifest(self):
         channel = json.loads((ROOT / "studio" / "update-channel.json").read_text(encoding="utf-8"))
         url = channel.get("manifest_url", "")
-        self.assertTrue(not url or url.startswith("https://"))
+        self.assertEqual(url, "https://api.github.com/repos/APKRepoGroup/APK-Cleaner-Studio/releases/latest")
+
+    def test_github_update_ui_and_platform_apply_endpoint_are_connected(self):
+        html = (ROOT / "studio" / "web" / "index.html").read_text(encoding="utf-8")
+        script = (ROOT / "studio" / "web" / "app.js").read_text(encoding="utf-8")
+        backend = (ROOT / "studio" / "server.py").read_text(encoding="utf-8")
+        updater = (ROOT / "studio" / "updater.py").read_text(encoding="utf-8")
+        self.assertIn('id="updateDownload"', html)
+        self.assertIn("installUpdate", script)
+        self.assertIn('"/api/update/apply"', script)
+        self.assertIn('path == "/api/update/apply"', backend)
+        self.assertIn("stage_update(VERSION)", backend)
+        self.assertIn("releases/latest", updater)
+        self.assertIn("digest", updater)
 
     def test_private_owner_address_is_not_embedded_in_runtime_or_packaging(self):
         forbidden = ("apkcleaner.erdgn", "10.10.30.")

@@ -15,7 +15,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "0.6.2"
+VERSION = "0.6.3-dev.1"
 EXE = ROOT / "outputs" / f"APK-Cleaner-Studio-v{VERSION}-Windows.exe"
 TERMUX = ROOT / "outputs" / f"APK-Cleaner-Studio-v{VERSION}-Termux.zip"
 
@@ -121,8 +121,9 @@ def audit_windows() -> dict:
                 time.sleep(0.15)
         if http["version"] != VERSION or https["version"] != VERSION:
             raise RuntimeError("EXE API sürümü paket adıyla eşleşmiyor.")
-        if http.get("channel") != "stable" or https.get("channel") != "stable":
-            raise RuntimeError("Kararlı EXE, API üzerinde stable kanalını raporlamıyor.")
+        expected_channel = "dev" if "-dev." in VERSION else "stable"
+        if http.get("channel") != expected_channel or https.get("channel") != expected_channel:
+            raise RuntimeError(f"EXE, API üzerinde {expected_channel} kanalını raporlamıyor.")
         if not http["toolchain"]["fully_ready"]:
             raise RuntimeError(f"EXE içindeki araç zinciri eksik: {http['toolchain']}")
         app_js = fetch_text(f"http://127.0.0.1:{port}/app.js")

@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ANDROID = ROOT / "android"
 APK = Path(os.environ.get(
     "APK_CLEANER_ANDROID_APK",
-    ROOT / "outputs" / "APK-Cleaner-Studio-v0.6.2-Android.apk",
+    ROOT / "outputs" / "APK-Cleaner-Studio-v0.6.3-dev.1-Android.apk",
 ))
 
 
@@ -18,8 +18,10 @@ class AndroidPackageTests(unittest.TestCase):
     def test_requested_android_matrix_and_version_are_declared(self):
         gradle = (ANDROID / "app" / "build.gradle").read_text(encoding="utf-8")
         self.assertIn('applicationId "com.apkrepo.apkcleanerstudio"', gradle)
-        self.assertIn("versionCode 62", gradle)
-        self.assertIn('versionName "0.6.2"', gradle)
+        self.assertNotIn("applicationIdSuffix", gradle)
+        self.assertIn("versionCode 6301", gradle)
+        self.assertIn('versionName "0.6.3-dev.1"', gradle)
+        self.assertGreaterEqual(gradle.count("signingConfig signingConfigs.studio"), 2)
         self.assertIn("enableV1Signing false", gradle)
         self.assertIn("enableV2Signing true", gradle)
         self.assertIn("enableV3Signing true", gradle)
@@ -79,6 +81,18 @@ class AndroidPackageTests(unittest.TestCase):
         self.assertIn("if (!awaitEngineReady(30000))", activity)
         self.assertIn("recoverEmbeddedEngine", script)
         self.assertIn("async function apiFetch", script)
+
+    def test_android_keeps_screen_awake_only_while_processing(self):
+        activity = (ANDROID / "app/src/main/java/com/apkcleaner/studio/MainActivity.java").read_text(encoding="utf-8")
+        script = (ROOT / "studio/web/app.js").read_text(encoding="utf-8")
+        self.assertIn("setProcessingActive(boolean active)", activity)
+        self.assertIn("WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON", activity)
+        self.assertIn("getWindow().addFlags", activity)
+        self.assertIn("getWindow().clearFlags", activity)
+        self.assertIn("function setJobRunning(active)", script)
+        self.assertIn("setProcessingActive?.(state.jobRunning)", script)
+        self.assertIn("setJobRunning(true)", script)
+        self.assertIn("finally { setJobRunning(false);", script)
 
     def test_installed_icons_preserve_density_dependent_insets_before_scaling(self):
         activity = (ANDROID / "app/src/main/java/com/apkcleaner/studio/MainActivity.java").read_text(encoding="utf-8")
@@ -141,6 +155,9 @@ class AndroidPackageTests(unittest.TestCase):
         self.assertIn("cancelPendingInstall", activity)
         self.assertIn("STATE_INSTALL_PATH", activity)
         self.assertIn("permission_required", activity)
+        self.assertIn("installUpdate", activity)
+        self.assertIn("downloadOfficialUpdate", activity)
+        self.assertIn("APKRepoGroup/APK-Cleaner-Studio/releases/download", activity)
         self.assertIn('id="installButton"', html)
         self.assertIn('id="shareOutputButton"', html)
         self.assertIn("onNativeAction", script)

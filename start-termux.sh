@@ -4,6 +4,7 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 PID_FILE="$SCRIPT_DIR/.apk-cleaner-termux.pid"
+UPDATE_MANIFEST="$SCRIPT_DIR/.apk-cleaner-update.json"
 SERVER_PID=""
 
 stop_server() {
@@ -79,3 +80,13 @@ fi
 wait "$SERVER_PID" || true
 SERVER_PID=""
 rm -f "$PID_FILE"
+
+if [ -f "$UPDATE_MANIFEST" ]; then
+  echo "GitHub güncellemesi doğrulanıyor ve uygulanıyor..."
+  if python studio/apply_termux_update.py "$UPDATE_MANIFEST"; then
+    echo "Güncelleme tamamlandı; APK Cleaner Studio yeniden başlatılıyor."
+    exec bash "$SCRIPT_DIR/start-termux.sh"
+  fi
+  echo "Güncelleme uygulanamadı. Mevcut sürüm korunarak oturum kapatıldı."
+  exit 1
+fi

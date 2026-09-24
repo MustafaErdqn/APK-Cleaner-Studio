@@ -97,6 +97,7 @@ public final class MainActivity extends Activity {
     private static final String STATE_INSTALL_PATH = "install_path";
     private static final String STATE_INSTALL_PACKAGE = "install_package";
     private static final String STATE_INSTALL_TOKEN = "install_token";
+    private static final String STATE_INSTALL_ACTION = "install_action";
     private static final String CLIENT_COOKIE_NAME = "apk_cleaner_client_id";
     private static final String TAG = "APKCleanerDownload";
     private WebView webView;
@@ -125,6 +126,7 @@ public final class MainActivity extends Activity {
     private volatile File pendingNativeInstall;
     private volatile String pendingNativeInstallPackage;
     private volatile String pendingNativeInstallToken;
+    private volatile String pendingNativeInstallAction = "install";
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -139,6 +141,7 @@ public final class MainActivity extends Activity {
             pendingNativeInstall = installPath == null ? null : new File(installPath);
             pendingNativeInstallPackage = state.getString(STATE_INSTALL_PACKAGE);
             pendingNativeInstallToken = state.getString(STATE_INSTALL_TOKEN);
+            pendingNativeInstallAction = state.getString(STATE_INSTALL_ACTION, "install");
         }
         try {
             // Paket listesini ekran ve yerel motor hazırlanırken paralel olarak
@@ -594,6 +597,14 @@ public final class MainActivity extends Activity {
             postToUi(() -> applySystemTheme(theme));
         }
 
+        @JavascriptInterface public void setProcessingActive(boolean active) {
+            postToUi(() -> {
+                if (closed || isFinishing()) return;
+                if (active) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            });
+        }
+
         /** Returns only the already prepared cache and never blocks WebView. */
         @JavascriptInterface public String listInstalledPackages() {
             return installedPackagesCache;
@@ -656,6 +667,10 @@ public final class MainActivity extends Activity {
 
         @JavascriptInterface public void prepareInstall(String url, String filename) {
             executeIo(() -> prepareNativeInstall(url, filename));
+        }
+
+        @JavascriptInterface public void installUpdate(String url, String filename, String sha256) {
+            executeIo(() -> prepareOfficialUpdate(url, filename, sha256));
         }
 
         @JavascriptInterface public void confirmReplaceInstall(String token) {
@@ -804,6 +819,89 @@ public final class MainActivity extends Activity {
     private void prepareNativeInstall(String url, String filename) {
         try {
             File apk = downloadNativePackage(url, filename, "install");
+            prepareNativeInstallFile(apk, false, "install");
+        } catch (Exception error) { publishNativeAction("install", jsonError(messageOf(error, "APK kuruluma hazırlanamadı."))); }
+    }
+
+    private boolean isTrustedOfficialUpdateUrl(String address, String filename) {
+        try {
+            Uri uri = Uri.parse(address);
+            String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase(Locale.ROOT);
+            String path = uri.getPath() == null ? "" : uri.getPath();
+            return "https".equalsIgnoreCase(uri.getScheme())
+                    && "github.com".equals(host)
+                    && path.startsWith("/APKRepoGroup/APK-Cleaner-Studio/releases/download/")
+                    && filename != null
+                    && filename.matches("APK-Cleaner-Studio-v\\d+\\.\\d+\\.\\d+(?:-dev\\.\\d+)?-Android\\.apk")
+                    && filename.equals(Uri.decode(path.substring(path.lastIndexOf('/') + 1)));
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    private boolean isTrustedGithubDownloadHost(URL url) {
+        String protocol = url.getProtocol() == null ? "" : url.getProtocol().toLowerCase(Locale.ROOT);
+        String host = url.getHost() == null ? "" : url.getHost().toLowerCase(Locale.ROOT);
+        return "https".equals(protocol) && ("github.com".equals(host)
+                || host.endsWith(".githubusercontent.com") || host.endsWith(".githubassets.com"));
+    }
+
+    private File downloadOfficialUpdate(String address, String filename, String expectedSha256) throws Exception {
+        String digestText = expectedSha256 == null ? "" : expectedSha256.trim().toLowerCase(Locale.ROOT);
+        if (!isTrustedOfficialUpdateUrl(address, filename) || !digestText.matches("[a-f0-9]{64}")) {
+            throw new IOException("Güncelleme paketi güvenilir GitHub kaydıyla eşleşmiyor.");
+        }
+        File destination = new File(nativePackageDirectory(), "update-" + UUID.randomUUID() + "-"
+                + safePackageFilename(filename, "APK-Cleaner-Studio-update.apk"));
+        HttpURLConnection connection = (HttpURLConnection) new URL(address).openConnection(Proxy.NO_PROXY);
+        connection.setInstanceFollowRedirects(true);
+        connection.setRequestProperty("User-Agent", "APK-Cleaner-Studio-Android-Updater/2.0");
+        connection.setRequestProperty("Accept", "application/vnd.android.package-archive,application/octet-stream");
+        connection.setConnectTimeout(20000);
+        connection.setReadTimeout(300000);
+        boolean completed = false;
+        try {
+            int status = connection.getResponseCode();
+            if (status < 200 || status >= 300) throw new IOException("GitHub güncelleme sunucusu HTTP " + status + " döndürdü.");
+            if (!isTrustedGithubDownloadHost(connection.getURL())) {
+                throw new IOException("Güncelleme paketi güvenilir olmayan bir adrese yönlendirildi.");
+            }
+            long declared = connection.getContentLengthLong();
+            if (declared > 750L * 1024L * 1024L) throw new IOException("Güncelleme paketi boyut sınırını aşıyor.");
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            long total = 0;
+            try (InputStream input = connection.getInputStream(); OutputStream output = new FileOutputStream(destination)) {
+                byte[] buffer = new byte[1024 * 1024]; int count;
+                while ((count = input.read(buffer)) >= 0) {
+                    total += count;
+                    if (total > 750L * 1024L * 1024L) throw new IOException("Güncelleme paketi boyut sınırını aşıyor.");
+                    digest.update(buffer, 0, count);
+                    output.write(buffer, 0, count);
+                }
+            }
+            StringBuilder actual = new StringBuilder(64);
+            for (byte value : digest.digest()) actual.append(String.format(Locale.ROOT, "%02x", value & 0xff));
+            if (!actual.toString().equals(digestText)) throw new IOException("Güncelleme paketinin SHA-256 doğrulaması başarısız oldu.");
+            completed = true;
+            return destination;
+        } finally {
+            connection.disconnect();
+            if (!completed) destination.delete();
+        }
+    }
+
+    private void prepareOfficialUpdate(String url, String filename, String sha256) {
+        File apk = null;
+        try {
+            apk = downloadOfficialUpdate(url, filename, sha256);
+            prepareNativeInstallFile(apk, true, "update");
+        } catch (Exception error) {
+            if (apk != null && apk != pendingNativeInstall) apk.delete();
+            publishNativeAction("update", jsonError(messageOf(error, "Güncelleme indirilemedi.")));
+        }
+    }
+
+    private void prepareNativeInstallFile(File apk, boolean officialUpdate, String action) throws Exception {
             PackageManager manager = getPackageManager();
             int flags = Build.VERSION.SDK_INT >= 28 ? PackageManager.GET_SIGNING_CERTIFICATES : PackageManager.GET_SIGNATURES;
             PackageInfo archive = manager.getPackageArchiveInfo(apk.getAbsolutePath(), flags);
@@ -823,10 +921,14 @@ public final class MainActivity extends Activity {
             JSONObject result = new JSONObject().put("package", archive.packageName).put("filename", apk.getName());
             if (incompatibilities.length() > 0) {
                 result.put("status", "incompatible").put("reasons", incompatibilities);
-                apk.delete(); publishNativeAction("install", result.toString()); return;
+                apk.delete(); publishNativeAction(action, result.toString()); return;
             }
             PackageInfo installed = null;
             try { installed = manager.getPackageInfo(archive.packageName, flags); } catch (PackageManager.NameNotFoundException ignored) {}
+            if (officialUpdate && !getPackageName().equals(archive.packageName)) {
+                apk.delete();
+                throw new IOException("Güncelleme paketi APK Cleaner Studio kimliğiyle eşleşmiyor.");
+            }
             if (installed != null) {
                 JSONArray reasons = new JSONArray();
                 String archiveSigner = signerDigest(archive);
@@ -835,19 +937,25 @@ public final class MainActivity extends Activity {
                     throw new IOException("Paket imzası güvenli biçimde karşılaştırılamadı.");
                 }
                 if (!archiveSigner.equals(installedSigner)) reasons.put("Cihazdaki uygulama farklı bir imzayla kurulmuş.");
-                if (packageVersionCode(installed) > packageVersionCode(archive)) reasons.put("Cihazda daha yeni bir sürüm kurulu.");
+                if (officialUpdate && packageVersionCode(installed) >= packageVersionCode(archive)) reasons.put("Güncelleme paketi cihazdaki sürümden daha yeni değil.");
+                else if (packageVersionCode(installed) > packageVersionCode(archive)) reasons.put("Cihazda daha yeni bir sürüm kurulu.");
                 if (reasons.length() > 0) {
+                    if (officialUpdate) {
+                        apk.delete();
+                        throw new IOException(reasons.join(" "));
+                    }
                     pendingNativeInstall = apk; pendingNativeInstallPackage = archive.packageName;
                     pendingNativeInstallToken = UUID.randomUUID().toString();
+                    pendingNativeInstallAction = action;
                     result.put("status", "requires_uninstall").put("reasons", reasons).put("token", pendingNativeInstallToken);
-                    publishNativeAction("install", result.toString()); return;
+                    publishNativeAction(action, result.toString()); return;
                 }
             }
             pendingNativeInstall = apk;
             pendingNativeInstallPackage = archive.packageName;
             pendingNativeInstallToken = null;
+            pendingNativeInstallAction = action;
             launchInstaller(apk);
-        } catch (Exception error) { publishNativeAction("install", jsonError(messageOf(error, "APK kuruluma hazırlanamadı."))); }
     }
 
     private Set<String> apkAbis(File apk) throws IOException {
@@ -886,16 +994,17 @@ public final class MainActivity extends Activity {
 
     private void launchInstaller(File apk) {
         postToUi(() -> {
+            String action = pendingNativeInstallAction == null ? "install" : pendingNativeInstallAction;
             if (Build.VERSION.SDK_INT >= 26 && !getPackageManager().canRequestPackageInstalls()) {
                 try {
                     pendingNativeInstall = apk;
                     pendingNativeInstallToken = null;
                     startActivityForResult(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                             Uri.parse("package:" + getPackageName())), UNKNOWN_SOURCE_PERMISSION);
-                    publishNativeAction("install", "{\"status\":\"permission_required\"}");
+                    publishNativeAction(action, "{\"status\":\"permission_required\"}");
                 } catch (ActivityNotFoundException | SecurityException error) {
                     clearPendingNativeInstall();
-                    publishNativeAction("install", jsonError("Bilinmeyen uygulama yükleme izni ekranı açılamadı."));
+                    publishNativeAction(action, jsonError("Bilinmeyen uygulama yükleme izni ekranı açılamadı."));
                 }
                 return;
             }
@@ -905,10 +1014,10 @@ public final class MainActivity extends Activity {
             try {
                 startActivity(install);
                 clearPendingNativeInstall();
-                publishNativeAction("install", "{\"status\":\"installer_opened\"}");
+                publishNativeAction(action, "{\"status\":\"installer_opened\"}");
             } catch (ActivityNotFoundException | SecurityException error) {
                 clearPendingNativeInstall();
-                publishNativeAction("install", jsonError("Android Paket Yükleyici açılamadı."));
+                publishNativeAction(action, jsonError("Android Paket Yükleyici açılamadı."));
             }
         });
     }
@@ -917,6 +1026,7 @@ public final class MainActivity extends Activity {
         pendingNativeInstall = null;
         pendingNativeInstallPackage = null;
         pendingNativeInstallToken = null;
+        pendingNativeInstallAction = "install";
     }
 
     private boolean packageIsInstalled(String packageName) {
@@ -1155,12 +1265,13 @@ public final class MainActivity extends Activity {
         if (requestCode == UNINSTALL_FOR_REPLACE) {
             File apk = pendingNativeInstall;
             String packageName = pendingNativeInstallPackage;
+            String action = pendingNativeInstallAction;
             executeIo(() -> {
                 boolean removed = waitForPackageRemoval(packageName);
                 if (removed && apk != null && apk.isFile()) launchInstaller(apk);
                 else {
                     clearPendingNativeInstall();
-                    publishNativeAction("install", jsonError(
+                    publishNativeAction(action, jsonError(
                             "Mevcut uygulama kaldırılmadı. Sistem kaldırma ekranından işlemi onaylayıp yeniden dene."));
                 }
             });
@@ -1168,15 +1279,16 @@ public final class MainActivity extends Activity {
         }
         if (requestCode == UNKNOWN_SOURCE_PERMISSION) {
             File apk = pendingNativeInstall;
+            String action = pendingNativeInstallAction;
             if (Build.VERSION.SDK_INT < 26 || getPackageManager().canRequestPackageInstalls()) {
                 if (apk != null && apk.isFile()) launchInstaller(apk);
                 else {
                     clearPendingNativeInstall();
-                    publishNativeAction("install", jsonError("Kuruluma hazırlanmış APK artık bulunamıyor."));
+                    publishNativeAction(action, jsonError("Kuruluma hazırlanmış APK artık bulunamıyor."));
                 }
             } else {
                 clearPendingNativeInstall();
-                publishNativeAction("install", jsonError("Bu kaynaktan uygulama yükleme izni verilmedi; kurulum durduruldu."));
+                publishNativeAction(action, jsonError("Bu kaynaktan uygulama yükleme izni verilmedi; kurulum durduruldu."));
             }
             return;
         }
@@ -1271,6 +1383,7 @@ public final class MainActivity extends Activity {
                 pendingNativeInstall == null ? null : pendingNativeInstall.getAbsolutePath());
         state.putString(STATE_INSTALL_PACKAGE, pendingNativeInstallPackage);
         state.putString(STATE_INSTALL_TOKEN, pendingNativeInstallToken);
+        state.putString(STATE_INSTALL_ACTION, pendingNativeInstallAction);
     }
 
     private void openExternal(Uri uri) {
@@ -1329,6 +1442,7 @@ public final class MainActivity extends Activity {
 
     @Override protected void onDestroy() {
         closed = true;
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         viewGeneration++;
         io.shutdownNow();
         cancelFileSelection();

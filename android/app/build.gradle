@@ -21,9 +21,10 @@ android {
         applicationId "com.apkrepo.apkcleanerstudio"
         minSdk 26
         targetSdk 36
-        // Kararlı sürüm, v0.6.1 kurulumunun üzerine güncellenebilir.
-        versionCode 62
-        versionName "0.6.2"
+        // Geliştirme sürümleri 63xx aralığını kullanır; v0.6.3 kararlı sürümü
+        // daha yüksek bir kodla yayımlanarak dev kurulumlarının üzerine geçebilir.
+        versionCode 6301
+        versionName "0.6.3-dev.1"
 
         // Yalnızca varsayılan/İngilizce ve Türkçe metin kaynaklarını paketle.
         // Yoğunluklar resourceConfigurations ile filtrelenemez; projede yalnızca

@@ -4,13 +4,13 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "outputs" / "APK-Cleaner-Studio-v0.6.2-Termux.zip"
+OUTPUT = ROOT / "outputs" / "APK-Cleaner-Studio-v0.6.3-dev.1-Termux.zip"
 ROOT_FILES = (
     "install-termux.sh",
     "README-TERMUX.md",
     "README-TR.md",
     "README.md",
-    "RELEASE-NOTES-v0.6.2.md",
+    "RELEASE-NOTES-v0.6.3-dev.1.md",
     "start-termux.sh",
     "THIRD-PARTY-NOTICES.md",
     "VERSION.txt",
@@ -20,13 +20,14 @@ ROOT_FILES = (
 def should_include(relative: Path) -> bool:
     runtime_job = relative.parts[:2] == ("studio", "jobs")
     runtime_tls = relative.parts[:2] == ("studio", "tls")
+    runtime_updates = relative.parts[:2] == ("studio", "updates")
     runtime_state = relative.as_posix() in {
         "studio/blocked-clients.json",
         "studio/client-labels.json",
     }
     generated_cache = "__pycache__" in relative.parts or relative.suffix == ".pyc"
     transient = relative.suffix in {".part", ".tmp"}
-    return not any((runtime_job, runtime_tls, runtime_state, generated_cache, transient))
+    return not any((runtime_job, runtime_tls, runtime_updates, runtime_state, generated_cache, transient))
 
 
 def main() -> None:

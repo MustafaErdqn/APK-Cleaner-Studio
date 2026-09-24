@@ -74,7 +74,7 @@ class Handler(SimpleHTTPRequestHandler):
         elif path == "/qa-motion.js":
             self.reply((ROOT / "tests" / "ui_motion_probe.js").read_text(encoding="utf-8"), "text/javascript")
         elif path == "/api/status":
-            self.reply(json.dumps(dict(toolchain=TOOLS, platform="android", clients=[], channel="stable", version="0.6.2", engine_version="2.0")))
+            self.reply(json.dumps(dict(toolchain=TOOLS, platform="android", clients=[], channel="dev", version="0.6.3-dev.1", engine_version="2.0")))
         elif path == "/api/history":
             self.reply('{"jobs":[]}')
         elif path.endswith('/report'):

@@ -1,5 +1,5 @@
 {
-  "manifest_url": "",
+  "manifest_url": "https://api.github.com/repos/APKRepoGroup/APK-Cleaner-Studio/releases/latest",
   "check_interval_hours": 6,
-  "description": "HTTPS güncelleme bildirimi adresi. GitHub Releases veya statik JSON adresi bağlanabilir."
+  "description": "Kararlı kurulumlar yalnızca kararlı sürümleri; dev kurulumlar ise daha yeni dev sürümlerini ve sonraki kararlı sürümü denetler. Draft kayıtları hiçbir kanalda sunulmaz."
 }
