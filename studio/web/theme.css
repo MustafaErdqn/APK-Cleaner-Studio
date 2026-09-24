@@ -85,7 +85,8 @@ body,
 .update-notice small { color: var(--green); font-size: 8px; font-weight: 900; letter-spacing: .16em; }
 .update-notice b { margin-top: 3px; color: var(--ink); font-size: 12px; }
 .update-notice p { margin: 4px 0 0; color: var(--muted); font-size: 9px; line-height: 1.4; }
-.update-action { padding: 9px 12px; border-radius: 9px; color: #0d1515; background: var(--lime); border: 1px solid #0d1515; text-decoration: none; font-size: 9px; font-weight: 900; }
+.update-action { padding: 9px 12px; border-radius: 9px; color: #0d1515; background: var(--lime); border: 1px solid #0d1515; text-decoration: none; font: inherit; font-size: 9px; font-weight: 900; cursor: pointer; }
+.update-action:disabled { cursor: wait; opacity: .72; }
 #updateDismiss { width: 30px; height: 30px; border: 0; border-radius: 8px; color: var(--muted); background: transparent; cursor: pointer; font-size: 20px; }
 html[data-theme="dark"] .update-notice { background: rgba(72,213,168,.08); }
 
@@ -580,6 +581,10 @@ html[data-theme="light"] .installed-app-entry.selected .installed-app-row {
   -webkit-mask: url("icons/telegram-plane.svg") center / contain no-repeat;
   mask: url("icons/telegram-plane.svg") center / contain no-repeat;
 }
+.github-icon::before {
+  -webkit-mask: url("icons/github.svg") center / contain no-repeat;
+  mask: url("icons/github.svg") center / contain no-repeat;
+}
 .footer-links small,
 .footer-links b { display: block; }
 .footer-links small { color: var(--muted); font-size: 9px; font-weight: 900; letter-spacing: .12em; }
@@ -805,7 +810,7 @@ html[data-theme="dark"] .mobile-https-banner summary { color: var(--green); }
   .update-mark { width: 38px; height: 38px; }
   .update-action { grid-column: 2 / 4; text-align: center; }
   .footer-main { align-items: stretch; flex-direction: column; gap: 18px; padding-top: 23px; }
-  .footer-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .footer-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .footer-links a { min-width: 0; }
   .footer-bottom { align-items: flex-start; flex-direction: column; gap: 5px; }
 }
@@ -813,7 +818,7 @@ html[data-theme="dark"] .mobile-https-banner summary { color: var(--green); }
 @media (max-width: 460px) {
   .footer-main,
   .footer-bottom { width: calc(100% - 20px); }
-  .footer-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .footer-links { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* Mobile-first repair pass: stable type, clear steps and visible selections. */
@@ -1933,7 +1938,7 @@ html[data-theme="dark"] .option input:checked + span {
   .footer-main,
   .footer-bottom { width: calc(100% - 20px); }
   .footer-brand p { font-size: 10.5px; line-height: 1.5; }
-  .footer-links { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .footer-links { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .footer-links a { min-height: 64px; gap: 8px; padding: 8px; }
   .footer-links small { font-size: 8px; letter-spacing: .075em; }
   .footer-links b { font-size: 10.5px; line-height: 1.2; }
@@ -1941,11 +1946,12 @@ html[data-theme="dark"] .option input:checked + span {
 }
 
 @media (max-width: 360px) {
-  .footer-links { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-  .footer-links a { min-height: 58px; gap: 5px; padding: 6px; }
-  .footer-link-icon { width: 32px; height: 32px; flex-basis: 32px; }
+  .footer-links { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .footer-links a { min-height: 64px; gap: 4px; padding: 5px; }
+  .footer-link-icon { width: 28px; height: 28px; flex-basis: 28px; }
+  .footer-link-icon::before { width: 17px; height: 17px; }
   .footer-links small { font-size: 7.5px; }
-  .footer-links b { font-size: 9.5px; }
+  .footer-links b { font-size: 9px; line-height: 1.15; }
 }
 
 @media (prefers-reduced-motion: reduce) {

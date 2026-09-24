@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#0d1515">
   <meta http-equiv="Accept-CH" content="Sec-CH-UA-Model, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Form-Factors">
   <title>APK Cleaner Studio</title>
-  <link rel="stylesheet" href="boot.css?v=0.6.2-20260919.1">
+  <link rel="stylesheet" href="boot.css?v=0.6.3-dev.1-20260922.1">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="/favicon.png" sizes="512x512">
-  <script src="boot.js?v=0.6.2-20260919.1"></script>
+  <script src="boot.js?v=0.6.3-dev.1-20260922.1"></script>
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="theme.css?v=0.6.2-20260919.1">
+  <link rel="stylesheet" href="theme.css?v=0.6.3-dev.1-20260922.1">
 </head>
 <body>
   <header class="topbar">
@@ -30,7 +30,7 @@
   <section id="updateNotice" class="update-notice hidden" role="status" aria-live="polite">
     <div class="update-mark">↗</div>
     <div><small>GÜNCELLEME HAZIR</small><b id="updateTitle">Yeni APK Cleaner Studio sürümü</b><p id="updateText"></p></div>
-    <a id="updateDownload" class="update-action hidden" href="#" target="_blank" rel="noopener">Yeni sürümü indir</a>
+    <button id="updateDownload" type="button" class="update-action hidden">Yeni sürümü indir</button>
     <button id="updateDismiss" type="button" aria-label="Güncelleme bildirimini kapat">×</button>
   </section>
 
@@ -42,7 +42,7 @@
         <span class="hero-rotator"><em id="heroPhrase">Temiz, tek APK olarak al.</em></span>
       </h1>
       <p>APK reklam izlerini temizle; APKS, APKM ve XAPK paketlerini tek kurulabilir APK’ya dönüştür. DEX, manifest ve XML işlemlerinin tamamı cihazında gerçekleşir.</p>
-      <div class="hero-metrics"><span><b>18</b> reklam ağı</span><span><b>4</b> paket türü</span><span><b>%100</b> cihazda işlem</span><span><b>v0.6.2</b> kararlı sürüm</span></div>
+      <div class="hero-metrics"><span><b>18</b> reklam ağı</span><span><b>4</b> paket türü</span><span><b>%100</b> cihazda işlem</span><span><b>v0.6.3-dev.1</b> test sürümü</span></div>
     </section>
 
     <section id="mobileHttpsBanner" class="mobile-https-banner" aria-labelledby="mobileHttpsTitle">
@@ -201,6 +201,7 @@
       <span class="permanent"><b>Kasım Demiröz</b><small>Daimi Destekçi</small></span>
       <span><b>Muhammet Hüseyin Apaydın</b><small>Destekçi</small></span>
       <span><b>Mustafa Şengüler</b><small>Destekçi</small></span>
+      <span><b>SHADOW</b><small>Destekçi</small></span>
       <span><b>Talip Karabulut</b><small>Destekçi</small></span>
       <span><b>Tansu Özbey</b><small>Destekçi</small></span>
       <span><b>Zafer Can Şenol</b><small>Destekçi</small></span>
@@ -222,6 +223,10 @@
         <a href="https://t.me/+WZbVyByWkExjNmZk" target="_blank" rel="noopener noreferrer" aria-label="APK Repo Grubu Telegram kanalını yeni sekmede aç">
           <span class="footer-link-icon telegram-icon" aria-hidden="true"></span>
           <span><small>TELEGRAM</small><b>Topluluğa katıl</b></span>
+        </a>
+        <a href="https://github.com/APKRepoGroup/APK-Cleaner-Studio" target="_blank" rel="noopener noreferrer" aria-label="APK Cleaner Studio GitHub deposunu yeni sekmede aç">
+          <span class="footer-link-icon github-icon" aria-hidden="true"></span>
+          <span><small>GITHUB</small><b>Projeyi incele</b></span>
         </a>
       </nav>
     </div>
@@ -275,7 +280,7 @@
     </section>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-  <script src="ui-runtime.js?v=0.6.2-20260919.1"></script>
-  <script src="app.js?v=0.6.2-20260919.1"></script>
+  <script src="ui-runtime.js?v=0.6.3-dev.1-20260922.1"></script>
+  <script src="app.js?v=0.6.3-dev.1-20260922.1"></script>
 </body>
 </html>

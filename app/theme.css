@@ -235,7 +235,7 @@ html[data-theme="dark"] .community-links a > span::before { background: var(--gr
   .step:not(:last-child)::after { top: 13px; left: calc(50% + 18px); right: calc(-50% + 18px); }
   .step.active::after { background: color-mix(in srgb, var(--lime) 55%, var(--line)); }
   .profile.selected, html[data-theme="dark"] .profile.selected { border-color: var(--lime); box-shadow: 0 0 0 1px color-mix(in srgb,var(--lime) 28%,transparent),0 12px 28px var(--shadow); }
-  .community-links { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; }
+  .community-links { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 7px; }
   .community-links a { min-width: 0; gap: 7px; padding: 8px; border-radius: 11px; backdrop-filter: none; }
   .community-links a > span { width: 36px; height: 36px; flex-basis: 36px; }
   .community-links a > span::before { width: 20px; height: 20px; }

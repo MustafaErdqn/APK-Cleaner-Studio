@@ -7,7 +7,8 @@ const state = {
   displayedProgress: 0, targetProgress: 0, progressFrame: 0, progressLastTick: 0,
   pollInFlight: false, jobRunning: false, statusInFlight: false,
   installedApps: [], installedAppsLoading: false, installedAppsReady: false, selectedInstalledPackage: "", installedSharePackage: "",
-  outputUrl: "", outputFilename: "", nativeInstallBusy: false, nativeShareBusy: false
+  outputUrl: "", outputFilename: "", nativeInstallBusy: false, nativeShareBusy: false,
+  update: null, updateBusy: false
 };
 const MAX_UPLOAD_BYTES = 1024 ** 3;
 const PACKAGE_EXTENSIONS = [".apk", ".apks", ".apkm", ".xapk"];
@@ -16,6 +17,11 @@ const THEME_KEY = "apk-cleaner-theme";
 const DISMISSED_UPDATE_KEY = "apk-cleaner-dismissed-update";
 const CLIENT_ID_KEY = "apk-cleaner-client-id";
 const CLIENT_COOKIE_NAME = "apk_cleaner_client_id";
+function setJobRunning(active) {
+  state.jobRunning = Boolean(active);
+  if (document.documentElement.dataset.embedded !== "android") return;
+  try { globalThis.AndroidThemeBridge?.setProcessingActive?.(state.jobRunning); } catch {}
+}
 const httpFallback = document.getElementById("httpFallback");
 if (httpFallback) {
   httpFallback.href = `http://${location.host}${location.pathname}${location.search}${location.hash}`;
@@ -542,6 +548,32 @@ globalThis.onNativeAction = async (action, payload) => {
   let result;
   try { result = JSON.parse(payload); }
   catch { result = { status: "error", error: "Android yanıtı okunamadı." }; }
+  if (action === "update") {
+    const button = $("#updateDownload");
+    if (result.status === "permission_required") {
+      toast("Güncellemeye devam etmek için bu kaynaktan uygulama yükleme iznini etkinleştir.");
+      return;
+    }
+    if (result.status === "incompatible") {
+      state.updateBusy = false; button.disabled = false; button.textContent = button.dataset.defaultLabel || "İndir ve yükle";
+      await openAppDialog({
+        title: "Güncelleme bu cihazla uyumlu değil",
+        message: (result.reasons || []).join("\n") || "Android sürümü veya işlemci mimarisi güncellemenin gereksinimlerini karşılamıyor.",
+        confirmText: "Anladım", eyebrow: "GÜNCELLEME DENETİMİ"
+      });
+      return;
+    }
+    if (result.status === "installer_opened") {
+      state.updateBusy = false; button.disabled = false; button.textContent = button.dataset.defaultLabel || "İndir ve yükle";
+      toast("Güncelleme doğrulandı; Android kurulum ekranı açıldı.");
+      return;
+    }
+    if (result.status === "error") {
+      state.updateBusy = false; button.disabled = false; button.textContent = button.dataset.defaultLabel || "İndir ve yükle";
+      toast(result.error || "Güncelleme tamamlanamadı.");
+    }
+    return;
+  }
   if (result.status === "error") {
     if (action === "install") { state.nativeInstallBusy = false; $("#installButton").disabled = false; }
     if (action === "share") {
@@ -967,20 +999,66 @@ async function refreshStatus() {
 
 async function checkForUpdates() {
   try {
-    const response = await apiFetch("/api/update");
+    const response = await apiFetch("/api/update", { cache: "no-store", headers: clientHeaders() });
     const data = await response.json();
     const update = data.update;
     if (!response.ok || !data.available || !update) return;
     if (localStorage.getItem(DISMISSED_UPDATE_KEY) === update.latest_version) return;
+    state.update = update;
     $("#updateTitle").textContent = `APK Cleaner Studio v${update.latest_version} hazır`;
     const localHint = update.source === "local" && update.filename ? ` Dosya: ${update.filename}` : "";
     $("#updateText").textContent = `${update.notes || "Yeni sürüm kullanıma hazır."}${localHint}`;
-    const download = $("#updateDownload");
-    download.classList.toggle("hidden", !update.download_url);
-    if (update.download_url) download.href = update.download_url;
+    const button = $("#updateDownload");
+    const target = update.download_url || update.release_url;
+    button.classList.toggle("hidden", !target);
+    const label = update.automatic
+      ? (update.install_mode === "android" ? "İndir ve yükle" : "Güncelle ve yeniden başlat")
+      : "Sürüm sayfasını aç";
+    button.dataset.defaultLabel = label;
+    button.textContent = label;
+    button.disabled = false;
     $("#updateNotice").dataset.version = update.latest_version;
     $("#updateNotice").classList.remove("hidden");
   } catch {}
+}
+
+function openUpdateLink(address) {
+  if (!address) return;
+  const link = document.createElement("a");
+  link.href = address; link.target = "_blank"; link.rel = "noopener noreferrer";
+  document.body.append(link); link.click(); link.remove();
+}
+
+async function applyAvailableUpdate() {
+  const update = state.update;
+  const button = $("#updateDownload");
+  if (!update || state.updateBusy) return;
+  if (!update.automatic) {
+    openUpdateLink(update.download_url || update.release_url);
+    return;
+  }
+  state.updateBusy = true;
+  button.disabled = true;
+  button.textContent = "Güncelleme hazırlanıyor…";
+  if (update.install_mode === "android" && globalThis.AndroidThemeBridge?.installUpdate) {
+    globalThis.AndroidThemeBridge.installUpdate(update.download_url, update.filename, update.sha256);
+    return;
+  }
+  try {
+    const response = await apiFetch("/api/update/apply", { method: "POST", headers: clientHeaders() });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Güncelleme başlatılamadı.");
+    if (result.status === "manual") {
+      state.updateBusy = false; button.disabled = false; button.textContent = button.dataset.defaultLabel || "Sürüm sayfasını aç";
+      openUpdateLink(result.url || update.download_url || update.release_url);
+      return;
+    }
+    button.textContent = "Yeniden başlatılıyor…";
+    $("#updateText").textContent = "Paket doğrulandı. Uygulama yeni sürümle yeniden başlatılıyor.";
+  } catch (error) {
+    state.updateBusy = false; button.disabled = false; button.textContent = button.dataset.defaultLabel || "Yeniden dene";
+    toast(error.message || "Güncelleme tamamlanamadı.");
+  }
 }
 
 function renderTools(tools) {
@@ -1277,7 +1355,7 @@ async function runJob() {
   if (state.toolchain && (!state.toolchain.signer || (needsDex && !state.toolchain.dex_tools) || (needsResources && !state.toolchain.resource_tool))) {
     toast("İşlem için önce eksik bileşenleri hazırla."); $("#toolCard").scrollIntoView({ behavior: "smooth", block: "center" }); return;
   }
-  state.jobRunning = true;
+  setJobRunning(true);
   const cancelButton = $("#cancelJobButton");
   cancelButton.disabled = false; cancelButton.textContent = "İşlemi iptal et";
   resetProgress(); setStep(3); showView("#workingView"); updateProgress(4, "Yerel işlem motoru hazırlanıyor");
@@ -1308,7 +1386,7 @@ async function runJob() {
     refreshHistory();
     if (!result.signed) toast(result.sign_warning || "Çıktı imzalanamadı.");
   } catch (error) { toast(error.message); setStep(2); showView("#analysisView"); }
-  finally { state.jobRunning = false; state.pollInFlight = false; }
+  finally { setJobRunning(false); state.pollInFlight = false; }
 }
 
 async function cancelJob() {
@@ -1327,6 +1405,7 @@ async function cancelJob() {
 
 function reset() {
   Object.assign(state, { file: null, jobId: null, analysis: null, operation: "patch", patchAdsSelected: true, splitSelection: { abis: [], languages: [] }, messageTargets: [], messageCandidates: [], pollInFlight: false, jobRunning: false, outputUrl: "", outputFilename: "", nativeInstallBusy: false, nativeShareBusy: false, installedSharePackage: "" });
+  setJobRunning(false);
   resetProgress();
   $("#fileInput").value = ""; $("#cleanButton").disabled = false; $("#stripDebug").checked = false; $("#normalizeDex").checked = false; $("#optimizeApk").checked = false; $("#deobfuscateResources").checked = false; $("#patchAds").checked = false;
   $("#installButton").disabled = false; $("#shareOutputButton").disabled = false;
@@ -1424,6 +1503,7 @@ document.addEventListener("keydown", (event) => {
   else if (activeDialog) closeAppDialog(null);
 });
 $("#toolsButton").addEventListener("click", () => $("#toolCard").scrollIntoView({ behavior: "smooth", block: "center" }));
+$("#updateDownload").addEventListener("click", applyAvailableUpdate);
 $("#updateDismiss").addEventListener("click", () => {
   const notice = $("#updateNotice");
   if (notice.dataset.version) localStorage.setItem(DISMISSED_UPDATE_KEY, notice.dataset.version);
@@ -1461,8 +1541,9 @@ $("#installedAppsButton").classList.toggle("hidden", !embeddedAndroid
 applyTheme(localStorage.getItem(THEME_KEY) || "system", false); startHeroRotation();
 if (!embeddedAndroid) registerClientDetails();
 refreshStatus(); refreshHistory();
-if (!embeddedAndroid) checkForUpdates();
+checkForUpdates();
 revealReadyInterface();
 uiScheduler.add("status", refreshStatus, 10000);
 uiScheduler.add("history", refreshHistory, 30000);
+uiScheduler.add("updates", checkForUpdates, 6 * 60 * 60 * 1000);
 uiScheduler.setActive(isUiActive());

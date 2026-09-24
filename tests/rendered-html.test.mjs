@@ -20,7 +20,7 @@ test("renders the APK Cleaner Studio preview", async () => {
 });
 
 test("ships the current local studio interface", async () => {
-  const [html, script, boot, style, theme, packageText, repoIcon, websiteIcon, telegramIcon] = await Promise.all([
+  const [html, script, boot, style, theme, packageText, repoIcon, websiteIcon, telegramIcon, githubIcon] = await Promise.all([
     readFile(new URL("../studio/web/index.html", import.meta.url), "utf8"),
     readFile(new URL("../studio/web/app.js", import.meta.url), "utf8"),
     readFile(new URL("../studio/web/boot.js", import.meta.url), "utf8"),
@@ -30,6 +30,7 @@ test("ships the current local studio interface", async () => {
     readFile(new URL("../studio/web/apk-repo-icon.png", import.meta.url)),
     readFile(new URL("../studio/web/icons/website.svg", import.meta.url), "utf8"),
     readFile(new URL("../studio/web/icons/telegram-plane.svg", import.meta.url), "utf8"),
+    readFile(new URL("../studio/web/icons/github.svg", import.meta.url), "utf8"),
   ]);
   const packageVersion = JSON.parse(packageText).version;
   assert.match(html, /styles\.css/i);
@@ -51,6 +52,7 @@ test("ships the current local studio interface", async () => {
   assert.match(html, /id="specialThanksTitle"[\s\S]*Özel Teşekkürler/i);
   assert.match(html, /id="supporterList"/i);
   assert.match(html, /<b>Zeki Kurt<\/b><small>Daimi Destekçi<\/small>/i);
+  assert.match(html, /<b>SHADOW<\/b><small>Destekçi<\/small>/i);
   assert.doesNotMatch(html, /𝕲𝖆𝖟𝖎/i);
   assert.match(html, /id="reportViewerDownload"[\s\S]*Raporu indir/i);
   assert.match(html, /YEREL AĞ OTURUMLARI/i);
@@ -136,8 +138,9 @@ test("ships the current local studio interface", async () => {
   assert.match(theme, /html, body\s*\{\s*overflow-x:\s*clip/i);
   assert.match(theme, /@media \(max-width:\s*620px\)[\s\S]*?\.topbar\s*\{[\s\S]*?position:\s*sticky;[\s\S]*?top:\s*0;[\s\S]*?z-index:\s*100/i);
   assert.match(theme, /\.option\s*\{[\s\S]*?min-height:\s*64px;[\s\S]*?padding:\s*11px 12px/i);
-  assert.match(theme, /\.footer-links\s*\{\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);\s*gap:\s*8px/i);
+  assert.match(theme, /\.footer-links\s*\{\s*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\);\s*gap:\s*8px/i);
   assert.match(theme, /\.footer-links a\s*\{\s*min-height:\s*64px;/i);
+  assert.match(html, /<small>GITHUB<\/small><b>Projeyi incele<\/b>/i);
   assert.match(theme, /@media \(min-width:\s*901px\)[\s\S]*?\.operation p\s*\{\s*font-size:\s*11\.5px;\s*line-height:\s*1\.55/i);
   assert.match(theme, /@media \(min-width:\s*901px\)[\s\S]*?\.option p\s*\{\s*font-size:\s*10\.5px;\s*line-height:\s*1\.55/i);
   assert.match(theme, /@media \(min-width:\s*901px\)[\s\S]*?\.footer-bottom\s*\{\s*font-size:\s*11px;\s*line-height:\s*1\.45/i);
@@ -254,9 +257,11 @@ test("ships the current local studio interface", async () => {
   assert.match(theme, /\.special-thanks\s*\{[\s\S]*?grid-template-columns/i);
   assert.match(theme, /icons\/website\.svg/i);
   assert.match(theme, /icons\/telegram-plane\.svg/i);
+  assert.match(theme, /icons\/github\.svg/i);
   assert.match(theme, /\.footer-links a\s*\{[\s\S]*?align-items:\s*center;[\s\S]*?flex-direction:\s*row;/i);
   assert.doesNotMatch(theme, /\.footer-links a\s*\{[^}]*flex-direction:\s*column/i);
   assert.ok(repoIcon.byteLength > 100_000);
   assert.match(websiteIcon, /<svg[\s\S]*<path/i);
   assert.match(telegramIcon, /<svg[\s\S]*<path/i);
+  assert.match(githubIcon, /<svg[\s\S]*<path/i);
 });

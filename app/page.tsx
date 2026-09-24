@@ -270,6 +270,7 @@ export default function Home() {
         <nav className="community-links" aria-label="APK Repo Grubu bağlantıları">
           <a href="https://linktr.ee/apkrepomod" target="_blank" rel="noopener noreferrer"><span className="website" aria-hidden="true" /><div><small>WEB SİTESİ</small><b>APK Repo</b></div></a>
           <a href="https://t.me/+WZbVyByWkExjNmZk" target="_blank" rel="noopener noreferrer"><span className="telegram" aria-hidden="true" /><div><small>TELEGRAM</small><b>Topluluğa katıl</b></div></a>
+          <a href="https://github.com/APKRepoGroup/APK-Cleaner-Studio" target="_blank" rel="noopener noreferrer"><span className="github" aria-hidden="true" /><div><small>GITHUB</small><b>Projeyi incele</b></div></a>
         </nav>
         <div className="community-legal"><span>© 2026 APK Repo Grubu.</span><span>APK Cleaner Studio · Yerel paket araçları</span></div>
       </footer>
